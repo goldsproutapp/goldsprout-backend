@@ -15,6 +15,7 @@ func UserInfo(ctx *gin.Context) {
 }
 
 func main() {
+
 	db := database.InitDB()
     database.CreateInitialAdminAccount(db)
 

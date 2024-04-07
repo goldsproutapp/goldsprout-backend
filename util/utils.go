@@ -33,6 +33,15 @@ func ParseUint(input string, errList *[]error) uint {
     return uint(num)
 }
 
+func ParseIntOrDefault(input string, def int) int {
+    errList := make([]error, 0)
+    res := ParseUint(input, &errList)
+    if len(errList) != 0 {
+        return def
+    }
+    return int(res)
+}
+
 func MapKeys[K comparable, V any](m map[K]V) []K {
     keys := make([]K, 0, len(m))
     for k := range m {

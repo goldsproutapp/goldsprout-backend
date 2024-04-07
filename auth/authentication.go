@@ -31,8 +31,12 @@ func AuthenticateUnamePw(db *gorm.DB, uname string, password string) (models.Use
 	return user, nil
 }
 
+func GenerateToken() string {
+    return GenerateUID(constants.TOKEN_LENGTH)
+}
+
 func CreateToken(db *gorm.DB, user models.User) string {
-    token := GenerateUID(constants.TOKEN_LENGTH)
+    token := GenerateToken()
     user.TokenHash = Hash(token)
     db.Save(&user)
     return token

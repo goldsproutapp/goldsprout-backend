@@ -1,13 +1,16 @@
 package routes
 
 import (
+	"errors"
 	"net/http"
 	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/patrickjonesuk/investment-tracker/auth"
 	"github.com/patrickjonesuk/investment-tracker/middleware"
+	"github.com/patrickjonesuk/investment-tracker/models"
 	"github.com/patrickjonesuk/investment-tracker/request"
+	"gorm.io/gorm"
 )
 
 func Login(ctx *gin.Context) {
@@ -31,6 +34,30 @@ func Login(ctx *gin.Context) {
 	})
 }
 
+func AcceptInvitation(ctx *gin.Context) {
+    db := middleware.GetDB(ctx)
+    var body models.UserInvitationAccept
+    err := ctx.BindJSON(&body)
+    if err != nil {
+        request.BadRequest(ctx)
+        return
+    }
+    var user models.User
+    res := db.Where(models.User{InvitationToken: body.Token, PasswordHash: ""}).First(&user)
+    if errors.Is(res.Error, gorm.ErrRecordNotFound) {
+        request.BadRequest(ctx)
+        return
+    }
+    user.PasswordHash = auth.HashAndSalt(body.Password)
+    token := auth.CreateToken(db, user)
+    request.Created(ctx, gin.H{
+        "token": token,
+        "data": user,
+    })
+}
+
 func RegisterAuthRoutes(router *gin.RouterGroup) {
 	router.POST("/login", Login)
+    router.POST("/acceptInvitation", AcceptInvitation)
 }
+

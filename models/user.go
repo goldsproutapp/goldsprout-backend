@@ -16,9 +16,14 @@ type User struct {
 
 	IsAdmin           bool               `json:"is_admin"`
 	AccessPermissions []AccessPermission `gorm:"foreignKey:UserID" json:"access_permissions"`
+	InvitationToken string    `json:"-"`
 
-	ClientOpts string `json:"client_options"` // Likely for colour scheme etc. but the client can do whatever with this.
-    CreatedAt  time.Time `json:"created_at"`
+	ClientOpts      string    `json:"client_options"` // Likely for colour scheme etc. but the client can do whatever with this.
+	CreatedAt       time.Time `json:"created_at"`
+}
+
+func (u User) Name() string {
+    return u.FirstName + " " + u.LastName
 }
 
 type PublicUserInfo struct {

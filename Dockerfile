@@ -16,11 +16,14 @@ RUN go build -o /investment-tracker
 FROM ubuntu:20.04
 
 COPY --from=build /investment-tracker /investment-tracker
+COPY templates /templates
 COPY scripts/docker-entrypoint.sh /docker-entrypoint.sh
 
 RUN apt update
 # entrypoint script uses nc to wait for db server
 RUN apt install -y netcat-openbsd
+# latest certificates for email TLS
+RUN apt install -y ca-certificates
 
 EXPOSE 3000
 
