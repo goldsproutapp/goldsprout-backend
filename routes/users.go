@@ -1,6 +1,7 @@
 package routes
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -8,6 +9,7 @@ import (
 	"github.com/patrickjonesuk/investment-tracker/database"
 	"github.com/patrickjonesuk/investment-tracker/middleware"
 	"github.com/patrickjonesuk/investment-tracker/models"
+	"github.com/patrickjonesuk/investment-tracker/request"
 	"github.com/patrickjonesuk/investment-tracker/util"
 )
 
@@ -37,7 +39,21 @@ func GetUserVisibility(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, util.Map(users, models.User.PublicInfo))
 }
 
+func UpdateUserInfo(ctx *gin.Context) {
+    db := middleware.GetDB(ctx)
+    user := middleware.GetUser(ctx)
+    var body models.UserUpdateInfo
+    if ctx.BindJSON(&body) != nil {
+        request.BadRequest(ctx)
+        return
+    }
+    user.ApplyUpdate(body)
+    db.Save(&user)
+    request.OK(ctx, user)
+}
+
 func RegisterUserRoutes(router *gin.RouterGroup) {
 	router.GET("/users", middleware.Authenticate("AccessPermissions"), GetUserInfo)
 	router.GET("/uservisibility", middleware.Authenticate("AccessPermissions"), GetUserVisibility)
+    router.PATCH("/user", middleware.Authenticate(), UpdateUserInfo)
 }

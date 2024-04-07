@@ -26,12 +26,9 @@ func (u User) Name() string {
     return u.FirstName + " " + u.LastName
 }
 
-type PublicUserInfo struct {
-	ID        uint   `json:"id,omitempty"`
-	FirstName string `json:"first_name,omitempty"`
-	LastName  string `json:"last_name,omitempty"`
-	Email     string `json:"email,omitempty"`
-	IsAdmin   bool   `json:"is_admin,omitempty"`
+func (u *User) ApplyUpdate(update UserUpdateInfo) {
+    u.FirstName = update.FirstName
+    u.LastName = update.LastName
 }
 
 func (u User) PublicInfo() PublicUserInfo {
@@ -43,3 +40,17 @@ func (u User) PublicInfo() PublicUserInfo {
 		IsAdmin:   u.IsAdmin,
 	}
 }
+
+type PublicUserInfo struct {
+	ID        uint   `json:"id,omitempty"`
+	FirstName string `json:"first_name,omitempty"`
+	LastName  string `json:"last_name,omitempty"`
+	Email     string `json:"email,omitempty"`
+	IsAdmin   bool   `json:"is_admin,omitempty"`
+}
+
+type UserUpdateInfo struct {
+	FirstName string `binding:"required" json:"first_name,omitempty"`
+	LastName  string `binding:"required" json:"last_name,omitempty"`
+}
+
