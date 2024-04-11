@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/patrickjonesuk/investment-tracker-backend/config"
 	"github.com/patrickjonesuk/investment-tracker-backend/database"
 	"github.com/patrickjonesuk/investment-tracker-backend/middleware"
 	"github.com/patrickjonesuk/investment-tracker-backend/routes"
@@ -25,6 +26,6 @@ func main() {
 	router.Use(middleware.Database(db))
     routes.RegisterAllRoutes(&router.RouterGroup, db)
 
-	router.Run("0.0.0.0:3000")
+    router.Run(config.EnvOrDefault(config.LISTEN_INTERFACE, "0.0.0.0") + ":" + config.EnvOrDefault(config.LISTEN_PORT, "3000"))
 
 }
