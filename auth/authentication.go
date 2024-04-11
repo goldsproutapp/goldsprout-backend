@@ -3,8 +3,8 @@ package auth
 import (
 	"errors"
 
-	"github.com/patrickjonesuk/investment-tracker/constants"
-	"github.com/patrickjonesuk/investment-tracker/models"
+	"github.com/patrickjonesuk/investment-tracker-backend/constants"
+	"github.com/patrickjonesuk/investment-tracker-backend/models"
 	"gorm.io/gorm"
 )
 

@@ -2,7 +2,7 @@ package routes
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/patrickjonesuk/investment-tracker/middleware"
+	"github.com/patrickjonesuk/investment-tracker-backend/middleware"
 	"gorm.io/gorm"
 )
 

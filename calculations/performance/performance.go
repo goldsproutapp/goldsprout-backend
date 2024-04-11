@@ -3,8 +3,8 @@ package calculations
 import (
 	"slices"
 
-	"github.com/patrickjonesuk/investment-tracker/models"
-	"github.com/patrickjonesuk/investment-tracker/util"
+	"github.com/patrickjonesuk/investment-tracker-backend/models"
+	"github.com/patrickjonesuk/investment-tracker-backend/util"
 	"github.com/shopspring/decimal"
 )
 

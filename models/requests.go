@@ -44,3 +44,18 @@ type UserInvitationAccept struct {
 	Token    string `binding:"required" json:"token,omitempty"`
 	Password string `binding:"required" json:"password,omitempty"`
 }
+
+type PasswordChangeRequest struct {
+	OldPassword string `binding:"required" json:"old_password,omitempty"`
+	NewPassword string `binding:"required" json:"new_password,omitempty"`
+}
+
+type SetPermissionsRequest struct {
+	User        uint                        `binding:"required" json:"user,omitempty"`
+	Permissions []SetPermissionsRequestItem `binding:"required" json:"permissions,omitempty"`
+}
+type SetPermissionsRequestItem struct {
+	ForUser uint `binding:"required" json:"for_user,omitempty"`
+	Read    bool `binding:"required" json:"read,omitempty"`
+	Write   bool `binding:"required" json:"write,omitempty"`
+}

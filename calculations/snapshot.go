@@ -3,8 +3,8 @@ package calculations
 import (
 	"time"
 
-	"github.com/patrickjonesuk/investment-tracker/constants"
-	"github.com/patrickjonesuk/investment-tracker/models"
+	"github.com/patrickjonesuk/investment-tracker-backend/constants"
+	"github.com/patrickjonesuk/investment-tracker-backend/models"
 	"github.com/shopspring/decimal"
 )
 

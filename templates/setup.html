@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+
+<head>
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <style>
+        html {
+            background-color: rgba(175, 238, 238, .75);
+        }
+        html, body, .wrapper {
+            height: 100%;
+        }
+        .wrapper {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .container {
+            text-align: center;
+            background-color: white;
+            border: 1px solid blue;
+            padding: 1rem;
+        }
+
+        .accept-button {
+            border: none;
+            color: black;
+            text-decoration: none;
+            padding: .5rem;
+            border-radius: .3rem;
+            background-color: #10b981;
+            font-size: large;
+        }
+
+    </style>
+</head>
+
+<body>
+    <div class="wrapper">
+        <div class="container">
+            <h1>Create an account to continue.</h1>
+            <a class="accept-button" href="{{.AcceptURL}}">Create account</a>
+        </div>
+    </div>
+</body>

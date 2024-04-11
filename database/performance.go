@@ -1,8 +1,8 @@
 package database
 
 import (
-	"github.com/patrickjonesuk/investment-tracker/auth"
-	"github.com/patrickjonesuk/investment-tracker/models"
+	"github.com/patrickjonesuk/investment-tracker-backend/auth"
+	"github.com/patrickjonesuk/investment-tracker-backend/models"
 	"gorm.io/gorm"
 )
 

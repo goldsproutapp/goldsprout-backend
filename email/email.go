@@ -6,9 +6,9 @@ import (
 	"html/template"
 	"strconv"
 
-	"github.com/patrickjonesuk/investment-tracker/config"
-	"github.com/patrickjonesuk/investment-tracker/models"
-	"github.com/patrickjonesuk/investment-tracker/util"
+	"github.com/patrickjonesuk/investment-tracker-backend/config"
+	"github.com/patrickjonesuk/investment-tracker-backend/models"
+	"github.com/patrickjonesuk/investment-tracker-backend/util"
 	"github.com/wneessen/go-mail"
 )
 
@@ -55,18 +55,32 @@ func TemplateFile(name string) *template.Template {
 	return tmpl
 }
 
-func SendInvitation(to string, by models.User, token string) bool {
-	msg := newMessage(to, "Invitation to track your investments")
-	url := fmt.Sprintf("%s/invitation?t=%s&e=%s",
+func FormatInvitationURL(to string, token string) string {
+    return fmt.Sprintf("%s/invitation?t=%s&e=%s",
 		config.RequiredEnv(config.FRONTEND_BASE_URL),
 		token,
 		base64.StdEncoding.EncodeToString([]byte(to)),
 	)
-	msg.SetBodyHTMLTemplate(TemplateFile("invitation"), map[string]string{
+}
+
+func SendInvitation(to string, by models.User, token string) bool {
+	msg := newMessage(to, "Invitation to track your investments")
+	url := FormatInvitationURL(to, token)
+    msg.SetBodyHTMLTemplate(TemplateFile("invitation"), map[string]string{
 		"Name":      by.Name(),
 		"Email":     by.Email,
 		"AcceptURL": url,
 	})
 	err := SendMessage(msg)
 	return err == nil
+}
+
+func SendSetupInvitation(to string, token string) bool {
+    msg := newMessage(to, "Set up your account to track your investments")
+    url := FormatInvitationURL(to, token)
+    msg.SetBodyHTMLTemplate(TemplateFile("setup"), map[string]string{
+        "AcceptURL": url,
+    })
+    err := SendMessage(msg)
+    return err == nil
 }

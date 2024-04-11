@@ -1,4 +1,4 @@
-module github.com/patrickjonesuk/investment-tracker
+module github.com/patrickjonesuk/investment-tracker-backend
 
 go 1.20
 

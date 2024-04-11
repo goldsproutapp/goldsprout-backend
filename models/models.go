@@ -82,10 +82,10 @@ type SingleTransaction struct {
 }
 
 type AccessPermission struct {
-    ID uint
-    UserID uint
-    AccessFor User
-    AccessForID uint
-    Read bool
-    Write bool
+	ID          uint `json:"-"`
+	UserID      uint `json:"user_id,omitempty"`
+	AccessFor   User `json:"-"`
+	AccessForID uint `json:"access_for_id,omitempty"`
+	Read        bool `json:"read,omitempty"`
+	Write       bool `json:"write,omitempty"`
 }

@@ -1,6 +1,6 @@
 package auth
 
-import "github.com/patrickjonesuk/investment-tracker/models"
+import "github.com/patrickjonesuk/investment-tracker-backend/models"
 
 func GetAllowedUsers(user models.User, requireRead bool, requireWrite bool) []uint {
 	var userIds []uint

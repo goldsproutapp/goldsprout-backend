@@ -6,10 +6,10 @@ import (
 	"strings"
 
 	"github.com/gin-gonic/gin"
-	"github.com/patrickjonesuk/investment-tracker/auth"
-	"github.com/patrickjonesuk/investment-tracker/middleware"
-	"github.com/patrickjonesuk/investment-tracker/models"
-	"github.com/patrickjonesuk/investment-tracker/request"
+	"github.com/patrickjonesuk/investment-tracker-backend/auth"
+	"github.com/patrickjonesuk/investment-tracker-backend/middleware"
+	"github.com/patrickjonesuk/investment-tracker-backend/models"
+	"github.com/patrickjonesuk/investment-tracker-backend/request"
 	"gorm.io/gorm"
 )
 
@@ -49,6 +49,7 @@ func AcceptInvitation(ctx *gin.Context) {
         return
     }
     user.PasswordHash = auth.HashAndSalt(body.Password)
+    user.Active = true
     token := auth.CreateToken(db, user)
     request.Created(ctx, gin.H{
         "token": token,
@@ -56,8 +57,26 @@ func AcceptInvitation(ctx *gin.Context) {
     })
 }
 
+func ChangePassword(ctx *gin.Context) {
+    db := middleware.GetDB(ctx)
+    user := middleware.GetUser(ctx)
+    var body models.PasswordChangeRequest
+    if ctx.BindJSON(&body) != nil {
+        request.BadRequest(ctx)
+        return 
+    }
+    if !auth.ValidatePassword(body.OldPassword, user.PasswordHash) {
+        request.Forbidden(ctx)
+        return
+    }
+    user.PasswordHash = auth.HashAndSalt(body.NewPassword)
+    db.Save(&user)
+    ctx.Status(http.StatusOK)
+}
+
 func RegisterAuthRoutes(router *gin.RouterGroup) {
 	router.POST("/login", Login)
     router.POST("/acceptInvitation", AcceptInvitation)
+    router.PATCH("/changepassword", middleware.Authenticate(), ChangePassword)
 }
 

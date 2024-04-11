@@ -4,9 +4,9 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/patrickjonesuk/investment-tracker/database"
-	"github.com/patrickjonesuk/investment-tracker/middleware"
-	"github.com/patrickjonesuk/investment-tracker/routes"
+	"github.com/patrickjonesuk/investment-tracker-backend/database"
+	"github.com/patrickjonesuk/investment-tracker-backend/middleware"
+	"github.com/patrickjonesuk/investment-tracker-backend/routes"
 )
 
 func UserInfo(ctx *gin.Context) {

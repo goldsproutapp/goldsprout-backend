@@ -1,16 +1,15 @@
 package routes
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/patrickjonesuk/investment-tracker/auth"
-	"github.com/patrickjonesuk/investment-tracker/database"
-	"github.com/patrickjonesuk/investment-tracker/middleware"
-	"github.com/patrickjonesuk/investment-tracker/models"
-	"github.com/patrickjonesuk/investment-tracker/request"
-	"github.com/patrickjonesuk/investment-tracker/util"
+	"github.com/patrickjonesuk/investment-tracker-backend/auth"
+	"github.com/patrickjonesuk/investment-tracker-backend/database"
+	"github.com/patrickjonesuk/investment-tracker-backend/middleware"
+	"github.com/patrickjonesuk/investment-tracker-backend/models"
+	"github.com/patrickjonesuk/investment-tracker-backend/request"
+	"github.com/patrickjonesuk/investment-tracker-backend/util"
 )
 
 func GetUserInfo(ctx *gin.Context) {
@@ -19,9 +18,9 @@ func GetUserInfo(ctx *gin.Context) {
 	uids := auth.GetAllowedUsers(user, true, false)
 	var users []models.User
 	if user.IsAdmin {
-		users = database.GetAllUsers(db)
+		users = database.GetAllUsers(db, "AccessPermissions")
 	} else {
-		db.Model(&models.User{}).Where("id IN ?", uids).Find(&users)
+		db.Model(&models.User{}).Preload("AccessPermissions").Where("id IN ?", uids).Find(&users)
         users = append(users, user)
 	}
 	ctx.JSON(http.StatusOK, users)

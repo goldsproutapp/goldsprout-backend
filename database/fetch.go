@@ -5,10 +5,10 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/patrickjonesuk/investment-tracker/auth"
-	"github.com/patrickjonesuk/investment-tracker/models"
-	"github.com/patrickjonesuk/investment-tracker/util"
-	"github.com/patrickjonesuk/investment-tracker/util/tristate"
+	"github.com/patrickjonesuk/investment-tracker-backend/auth"
+	"github.com/patrickjonesuk/investment-tracker-backend/models"
+	"github.com/patrickjonesuk/investment-tracker-backend/util"
+	"github.com/patrickjonesuk/investment-tracker-backend/util/tristate"
 	"github.com/shopspring/decimal"
 	"gorm.io/gorm"
 )
@@ -155,8 +155,12 @@ func GetOverviewForUser(db *gorm.DB, uid uint) models.OverviewResponseUserEntry 
 	}
 }
 
-func GetAllUsers(db *gorm.DB) []models.User {
+func GetAllUsers(db *gorm.DB, preload ...string) []models.User {
 	var users []models.User
+    qry := db.Model(&models.User{})
+    for _, join := range preload {
+        qry = qry.Preload(join)
+    }
 	db.Find(&users)
 	return users
 }

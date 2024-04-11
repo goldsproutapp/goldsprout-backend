@@ -5,14 +5,14 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/patrickjonesuk/investment-tracker/auth"
-	"github.com/patrickjonesuk/investment-tracker/calculations"
-	"github.com/patrickjonesuk/investment-tracker/constants"
-	"github.com/patrickjonesuk/investment-tracker/database"
-	"github.com/patrickjonesuk/investment-tracker/middleware"
-	"github.com/patrickjonesuk/investment-tracker/models"
-	"github.com/patrickjonesuk/investment-tracker/request"
-	"github.com/patrickjonesuk/investment-tracker/util"
+	"github.com/patrickjonesuk/investment-tracker-backend/auth"
+	"github.com/patrickjonesuk/investment-tracker-backend/calculations"
+	"github.com/patrickjonesuk/investment-tracker-backend/constants"
+	"github.com/patrickjonesuk/investment-tracker-backend/database"
+	"github.com/patrickjonesuk/investment-tracker-backend/middleware"
+	"github.com/patrickjonesuk/investment-tracker-backend/models"
+	"github.com/patrickjonesuk/investment-tracker-backend/request"
+	"github.com/patrickjonesuk/investment-tracker-backend/util"
 )
 
 func GetLatestSnapshotList(ctx *gin.Context) {
