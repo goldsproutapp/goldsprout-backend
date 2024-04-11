@@ -18,14 +18,14 @@ func UserInfo(ctx *gin.Context) {
 func main() {
 
 	db := database.InitDB()
-    database.CreateInitialAdminAccount(db)
+	database.CreateInitialAdminAccount(db)
 
 	router := gin.Default()
 	router.Use(middleware.CORSMiddleware())
 
 	router.Use(middleware.Database(db))
-    routes.RegisterAllRoutes(&router.RouterGroup, db)
+	routes.RegisterAllRoutes(&router.RouterGroup, db)
 
-    router.Run(config.EnvOrDefault(config.LISTEN_INTERFACE, "0.0.0.0") + ":" + config.EnvOrDefault(config.LISTEN_PORT, "3000"))
+	router.Run(config.EnvOrDefault(config.LISTEN_INTERFACE, "0.0.0.0") + ":" + config.EnvOrDefault(config.LISTEN_PORT, "3000"))
 
 }

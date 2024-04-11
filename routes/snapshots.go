@@ -86,6 +86,10 @@ func CreateSnapshots(ctx *gin.Context) {
 				return
 			}
 		}
+        if !userStock.CurrentlyHeld {
+            userStock.CurrentlyHeld = true
+            db.Save(&userStock)
+        }
 		userStocks[i] = userStock
 		stockIDs[i] = userStock.StockID
 		providerIDs.Add(snapshot.ProviderID)

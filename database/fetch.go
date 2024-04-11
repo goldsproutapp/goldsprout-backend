@@ -133,6 +133,7 @@ func GetOverviewForUser(db *gorm.DB, uid uint) models.OverviewResponseUserEntry 
 	db.Model(&models.UserStock{}).Preload("stocks").Where("currently_held = true").Where("user_id = ?", uid).Find(&userStocks)
 	snapshots := GetLatestSnapshots(userStocks, db)
 	totalValue := decimal.NewFromInt(0)
+	allTimeChange := decimal.NewFromInt(0)
 	providers := util.NewHashSet[uint]()
 	numStocks := len(userStocks)
 	lastSnapshot := time.Unix(0, 0)
@@ -142,25 +143,27 @@ func GetOverviewForUser(db *gorm.DB, uid uint) models.OverviewResponseUserEntry 
 			continue
 		}
 		totalValue = totalValue.Add(snapshot.Value)
+		allTimeChange = allTimeChange.Add(snapshot.ChangeToDate)
 		providers.Add(us.Stock.ProviderID)
 		if snapshot.Date.Compare(lastSnapshot) == 1 {
 			lastSnapshot = snapshot.Date
 		}
 	}
 	return models.OverviewResponseUserEntry{
-		TotalValue:   totalValue,
-		NumStocks:    numStocks,
-		NumProviders: providers.Size(),
-		LastSnapshot: lastSnapshot,
+		TotalValue:    totalValue,
+		AllTimeChange: allTimeChange,
+		NumStocks:     numStocks,
+		NumProviders:  providers.Size(),
+		LastSnapshot:  lastSnapshot,
 	}
 }
 
 func GetAllUsers(db *gorm.DB, preload ...string) []models.User {
 	var users []models.User
-    qry := db.Model(&models.User{})
-    for _, join := range preload {
-        qry = qry.Preload(join)
-    }
+	qry := db.Model(&models.User{})
+	for _, join := range preload {
+		qry = qry.Preload(join)
+	}
 	db.Find(&users)
 	return users
 }
