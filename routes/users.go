@@ -21,7 +21,6 @@ func GetUserInfo(ctx *gin.Context) {
 		users = database.GetAllUsers(db, "AccessPermissions")
 	} else {
 		db.Model(&models.User{}).Preload("AccessPermissions").Where("id IN ?", uids).Find(&users)
-        users = append(users, user)
 	}
 	ctx.JSON(http.StatusOK, users)
 }
