@@ -98,4 +98,5 @@ func SetPermissions(ctx *gin.Context) {
 
 func RegisterAdminRoutes(router *gin.RouterGroup) {
 	router.POST("/invite", middleware.Authenticate(), InviteUser)
+    router.PUT("/permissions", middleware.Authenticate(), SetPermissions)
 }
