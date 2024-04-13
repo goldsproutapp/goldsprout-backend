@@ -96,7 +96,27 @@ func SetPermissions(ctx *gin.Context) {
 	request.OK(ctx, gin.H{})
 }
 
+func MassDelete(ctx *gin.Context) {
+	user := middleware.GetUser(ctx)
+	if !user.IsAdmin {
+		request.Forbidden(ctx)
+		return
+	}
+	var body models.MassDeleteRequest
+	if ctx.BindJSON(&body) != nil {
+		request.BadRequest(ctx)
+		return
+	}
+	db := middleware.GetDB(ctx)
+	db.Session(&gorm.Session{AllowGlobalUpdate: true}).Delete(&models.StockSnapshot{})
+	if body.Stocks {
+		db.Session(&gorm.Session{AllowGlobalUpdate: true}).Delete(&models.UserStock{})
+		db.Session(&gorm.Session{AllowGlobalUpdate: true}).Delete(&models.Stock{})
+	}
+}
+
 func RegisterAdminRoutes(router *gin.RouterGroup) {
 	router.POST("/invite", middleware.Authenticate(), InviteUser)
-    router.PUT("/permissions", middleware.Authenticate(), SetPermissions)
+	router.PUT("/permissions", middleware.Authenticate(), SetPermissions)
+	router.POST("/massdelete", middleware.Authenticate(), MassDelete)
 }

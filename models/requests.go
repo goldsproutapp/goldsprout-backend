@@ -59,3 +59,7 @@ type SetPermissionsRequestItem struct {
 	Read    bool `binding:"required" json:"read,omitempty"`
 	Write   bool `binding:"required" json:"write,omitempty"`
 }
+
+type MassDeleteRequest struct {
+    Stocks    bool `binding:"required" json:"stocks,omitempty"`
+}
