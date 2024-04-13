@@ -86,10 +86,10 @@ func CreateSnapshots(ctx *gin.Context) {
 				return
 			}
 		}
-        if !userStock.CurrentlyHeld {
-            userStock.CurrentlyHeld = true
-            db.Save(&userStock)
-        }
+		if !userStock.CurrentlyHeld {
+			userStock.CurrentlyHeld = true
+			db.Save(&userStock)
+		}
 		userStocks[i] = userStock
 		stockIDs[i] = userStock.StockID
 		providerIDs.Add(snapshot.ProviderID)
@@ -109,7 +109,7 @@ func CreateSnapshots(ctx *gin.Context) {
 		obj := models.StockSnapshot{
 			UserID:                body.UserID,
 			Date:                  date,
-			StockID:               userStock.ID,
+			StockID:               userStock.StockID,
 			Units:                 util.ParseDecimal(snapshot.Units, &errList),
 			Price:                 price,
 			Cost:                  util.ParseDecimal(snapshot.Cost, &errList),
