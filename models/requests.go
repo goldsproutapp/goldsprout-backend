@@ -61,5 +61,5 @@ type SetPermissionsRequestItem struct {
 }
 
 type MassDeleteRequest struct {
-    Stocks    bool `binding:"required" json:"stocks,omitempty"`
+    Stocks    bool `json:"stocks,omitempty"`
 }
