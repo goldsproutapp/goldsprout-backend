@@ -23,3 +23,9 @@ type PerformanceResponse struct {
 
 type PerformanceMap = map[string]map[string]map[string][]StockSnapshot
 //                        ^col1      ^col2      ^time
+
+type PerformanceFilter struct {
+    Regions []string
+    Providers []uint
+    Users []uint
+}
