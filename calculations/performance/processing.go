@@ -29,6 +29,9 @@ var propGetters = map[string]func(models.StockSnapshot) string{
 	"stock": func(snapshot models.StockSnapshot) string {
 		return snapshot.Stock.Name
 	},
+    "all": func(_ models.StockSnapshot) string {
+        return ""
+    },
 }
 
 var Targets = util.MapKeys(propGetters)

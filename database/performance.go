@@ -27,6 +27,8 @@ func FetchPerformanceData(db *gorm.DB, user models.User, filter models.Performan
 		Order("date").
 		Joins("User").
         Joins("Stock").
+        Joins("INNER JOIN providers ON provider_id = providers.id").
+        Preload("Stock.Provider").
 		Where("user_id IN ?", uids)
 	if len(filter.Providers) > 0 {
 		qry = qry.Where("Stock.provider_id IN ?", filter.Providers)
