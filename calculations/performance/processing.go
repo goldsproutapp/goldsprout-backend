@@ -1,4 +1,4 @@
-package calculations
+package performance
 
 import (
 	"sort"
@@ -29,9 +29,9 @@ var propGetters = map[string]func(models.StockSnapshot) string{
 	"stock": func(snapshot models.StockSnapshot) string {
 		return snapshot.Stock.Name
 	},
-    "all": func(_ models.StockSnapshot) string {
-        return ""
-    },
+	"all": func(_ models.StockSnapshot) string {
+		return ""
+	},
 }
 
 var Targets = util.MapKeys(propGetters)
@@ -59,14 +59,23 @@ var timeListGetters = map[string]func([]string) []string{
 	},
 }
 
-func getKeyFromSnapshot(snapshot models.StockSnapshot, key string) string {
+func GetKeyFromSnapshot(snapshot models.StockSnapshot, key string) string {
 	return propGetters[key](snapshot)
 }
 
 func groupHasSnapshot(key string, value string, snapshot models.StockSnapshot) bool {
-	return getKeyFromSnapshot(snapshot, key) == value
+	return GetKeyFromSnapshot(snapshot, key) == value
 }
 
 func getTimeCategoryFromSnapshot(snapshot models.StockSnapshot, timeKey string) string {
 	return timeGetters[timeKey](snapshot)
+}
+
+func BuildStockFilter(query models.StockFilterQuery) models.StockFilter {
+	filter := models.StockFilter{
+		Regions:   util.Split(query.FilterRegions, ","),
+		Providers: util.UintArray(query.FilterProviders),
+		Users:     util.UintArray(query.FilterUsers),
+	}
+    return filter
 }

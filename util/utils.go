@@ -2,6 +2,7 @@ package util
 
 import (
 	"strconv"
+	"strings"
 
 	"github.com/patrickjonesuk/investment-tracker-backend/models"
 	"github.com/shopspring/decimal"
@@ -59,4 +60,23 @@ func UserIDs(users []models.User) []uint {
     return Map(users, func(user models.User) uint {
         return user.ID
     })
+}
+
+func UintArray(input string) []uint {
+	output := []uint{}
+	errList := []error{}
+	for _, item := range Split(input, ",") {
+		numErrors := len(errList)
+		number := ParseUint(item, &errList)
+		if len(errList) == numErrors {
+			output = append(output, number)
+		}
+	}
+	return output
+}
+func Split(input string, sep string) []string {
+	if len(input) == 0 {
+		return make([]string, 0)
+	}
+	return strings.Split(input, sep)
 }

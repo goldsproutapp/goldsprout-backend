@@ -1,4 +1,4 @@
-package calculations
+package performance
 
 import (
 	"slices"
@@ -19,10 +19,10 @@ func ProcessSnapshots(snapshots []models.StockSnapshot, info models.PerformanceQ
 	groups := models.PerformanceMap{}
 	timeCategories := util.NewOrderedSet[string]()
 	for _, snapshot := range snapshots {
-		target := getKeyFromSnapshot(snapshot, info.TargetKey)
+		target := GetKeyFromSnapshot(snapshot, info.TargetKey)
 		timeCategory := getTimeCategoryFromSnapshot(snapshot, info.TimeKey)
 		timeCategories.Add(timeCategory)
-		against := getKeyFromSnapshot(snapshot, info.AgainstKey)
+		against := GetKeyFromSnapshot(snapshot, info.AgainstKey)
 
 		addSnapshotToMap(&groups, snapshot, target, against, timeCategory)
 	}

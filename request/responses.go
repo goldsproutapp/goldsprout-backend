@@ -6,9 +6,9 @@ import (
 )
 
 func Created(ctx *gin.Context, data interface{}) {
-	ctx.JSON(http.StatusCreated, gin.H{"success": "true", "message": "created", "data": data})
+	ctx.JSON(http.StatusCreated, gin.H{"success": true, "message": "created", "data": data})
 }
 
 func OK(ctx *gin.Context, data interface{}) {
-    ctx.JSON(http.StatusOK, gin.H{"success": "true", "data": data})
+    ctx.JSON(http.StatusOK, gin.H{"success": true, "data": data})
 }

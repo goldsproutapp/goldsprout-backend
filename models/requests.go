@@ -28,14 +28,18 @@ type ProviderUpdateRequest struct {
 	Provider Provider `binding:"required" json:"provider"`
 }
 
+type StockFilterQuery struct {
+	FilterRegions   string `json:"filter_regions,omitempty" form:"filter_regions"`
+	FilterProviders string `json:"filter_providers,omitempty" form:"filter_providers"`
+	FilterUsers     string `json:"filter_users,omitempty" form:"filter_users"`
+}
+
 type PerformanceRequestQuery struct {
+    StockFilterQuery
 	Compare         string `binding:"required" json:"compare,omitempty" form:"compare"`
 	Of              string `binding:"required" json:"of,omitempty" form:"of"`
 	For             string `binding:"required" json:"for,omitempty" form:"for"`
 	Over            string `binding:"required" json:"over,omitempty" form:"over"`
-	FilterRegions   string `json:"filter_regions,omitempty" form:"filter_regions"`
-	FilterProviders string `json:"filter_providers,omitempty" form:"filter_providers"`
-	FilterUsers     string `json:"filter_users,omitempty" form:"filter_users"`
 }
 
 type UserInvitationRequest struct {

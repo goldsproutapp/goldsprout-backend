@@ -1,4 +1,4 @@
-package calculations
+package performance
 
 import (
 	"fmt"
