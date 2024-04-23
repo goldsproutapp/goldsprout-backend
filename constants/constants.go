@@ -2,7 +2,7 @@ package constants
 
 const (
 	PERFORMANCE_NORMALISATION_DAYS = 30
-	DEFAULT_SECTOR_NAME            = "Index"
+	DEFAULT_SECTOR_NAME            = ""
 	DEFAULT_REGION_NAME            = "Global"
 	TOKEN_LENGTH                   = 64
 	PERFORMANCE_DECIMAL_DIGITS     = 2
