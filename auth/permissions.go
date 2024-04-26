@@ -14,12 +14,11 @@ func GetAllowedUsers(user models.User, requireRead bool, requireWrite bool) []ui
 }
 
 func HasAccessPerm(user models.User, forUser uint, requireRead bool, requireWrite bool) bool {
-    if user.IsAdmin {
+    if user.IsAdmin || user.ID == forUser {
         return true
     }
 	for _, perm := range user.AccessPermissions {
-		uid := perm.AccessFor.ID
-		if uid != forUser {
+		if perm.AccessForID != forUser {
 			continue
 		}
 		return (perm.Read || !requireRead) && (perm.Write || !requireWrite)
