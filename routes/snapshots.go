@@ -133,15 +133,15 @@ bodyLoop:
 				// Price and normalised performance should be the same in both instances.
 				// If it's not, then the input data is bad.
 				newOther := models.StockSnapshot{
-					UserID:                other.UserID,
-					Date:                  other.Date,
-					StockID:               other.StockID,
-					Units:                 other.Units.Add(obj.Units),
-					Price:                 other.Price.Add(obj.Price),
-					Cost:                  other.Cost.Add(obj.Cost),
-					Value:                 other.Value.Add(obj.Value),
-					ChangeToDate:          other.ChangeToDate.Add(obj.ChangeToDate),
-					ChangeSinceLast:       other.ChangeSinceLast.Add(obj.ChangeSinceLast),
+					UserID:       other.UserID,
+					Date:         other.Date,
+					StockID:      other.StockID,
+					Units:        other.Units.Add(obj.Units),
+					Price:        other.Price.Add(obj.Price),
+					Cost:         other.Cost.Add(obj.Cost),
+					Value:        other.Value.Add(obj.Value),
+					ChangeToDate: other.ChangeToDate.Add(obj.ChangeToDate),
+					ChangeSinceLast:       calculations.CalculateValueChange(obj.Value.Add(other.Value), prevSnapshot),
 					NormalisedPerformance: other.NormalisedPerformance,
 				}
 				objs[j] = newOther
