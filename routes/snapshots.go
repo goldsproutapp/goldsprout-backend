@@ -96,7 +96,8 @@ func CreateSnapshots(ctx *gin.Context) {
 	}
 	prevSnapshots := database.GetLatestSnapshots(userStocks, db)
 
-	objs := make([]models.StockSnapshot, len(body.Entries))
+	objs := []models.StockSnapshot{}
+bodyLoop:
 	for i, snapshot := range body.Entries {
 		userStock := userStocks[i]
 		prevSnapshot := prevSnapshots[i]
@@ -106,6 +107,7 @@ func CreateSnapshots(ctx *gin.Context) {
 		value := util.ParseDecimal(snapshot.Value, &errList)
 		totalChange := util.ParseDecimal(snapshot.AbsoluteChange, &errList)
 		date := time.Unix(body.Date, 0)
+
 		obj := models.StockSnapshot{
 			UserID:                body.UserID,
 			Date:                  date,
@@ -122,7 +124,31 @@ func CreateSnapshots(ctx *gin.Context) {
 			request.BadRequest(ctx)
 			return
 		}
-		objs[i] = obj
+
+		for j, other := range objs {
+			if j >= i {
+				break
+			}
+			if other.StockID == userStock.StockID {
+				// Price and normalised performance should be the same in both instances.
+				// If it's not, then the input data is bad.
+				newOther := models.StockSnapshot{
+					UserID:                other.UserID,
+					Date:                  other.Date,
+					StockID:               other.StockID,
+					Units:                 other.Units.Add(obj.Units),
+					Price:                 other.Price.Add(obj.Price),
+					Cost:                  other.Cost.Add(obj.Cost),
+					Value:                 other.Value.Add(obj.Value),
+					ChangeToDate:          other.ChangeToDate.Add(obj.ChangeToDate),
+					ChangeSinceLast:       other.ChangeSinceLast.Add(obj.ChangeSinceLast),
+					NormalisedPerformance: other.NormalisedPerformance,
+				}
+				objs[j] = newOther
+				continue bodyLoop
+			}
+		}
+		objs = append(objs, obj)
 	}
 	result := db.Create(&objs)
 	if result.Error != nil {
