@@ -26,7 +26,7 @@ func ProcessSnapshots(snapshots []models.StockSnapshot, info models.PerformanceQ
 
 		addSnapshotToMap(&groups, snapshot, target, against, timeCategory)
 	}
-	return groups, append(timeListGetters[info.TimeKey](timeCategories.Items()), "Total")
+	return groups, append(timeListGetters[info.TimeKey](timeCategories.Items()), SummaryLabels[info.MetricKey])
 }
 
 func BuildSummary(perfMap models.PerformanceMap, info models.PerformanceQueryInfo, timePeriods []string) models.PerformanceResponse {

@@ -10,6 +10,7 @@ import (
 	"github.com/shopspring/decimal"
 )
 
+
 func PerformanceMetric(timeMap map[string][]models.StockSnapshot,
 ) map[string]decimal.Decimal {
 	total := decimal.NewFromInt(0)
@@ -28,7 +29,7 @@ func PerformanceMetric(timeMap map[string][]models.StockSnapshot,
 		items[timePeriod] = avg
 		total = total.Add(avg)
 	}
-	items["Total"] = total.Div(decimal.NewFromInt(int64(len(timeMap)))).Truncate(constants.PERFORMANCE_DECIMAL_DIGITS)
+	items[SummaryLabels["performance"]] = total.Div(decimal.NewFromInt(int64(len(timeMap)))).Truncate(constants.PERFORMANCE_DECIMAL_DIGITS)
 	return items
 }
 
@@ -53,7 +54,7 @@ func WeightedPerformanceMetric(timeMap map[string][]models.StockSnapshot,
 		totalWeights = totalWeights.Add(weights)
 
 	}
-	items["Total"] = total.Div(totalWeights).Truncate(constants.PERFORMANCE_DECIMAL_DIGITS)
+	items[SummaryLabels["weighted_performance"]] = total.Div(totalWeights).Truncate(constants.PERFORMANCE_DECIMAL_DIGITS)
 	return items
 }
 
@@ -84,7 +85,7 @@ func HoldingsMetric(timeMap map[string][]models.StockSnapshot,
 		}
 		items[timePeriod] = timeTotal
 	}
-    items["Total"] = items[latestTimePeriod]
+    items[SummaryLabels["holdings"]] = items[latestTimePeriod]
 	return items
 }
 
@@ -97,6 +98,14 @@ var metricsMap = map[string]func(
 	"weighted_performance": WeightedPerformanceMetric,
 
 	"holdings": HoldingsMetric,
+}
+var SummaryLabels = map[string]string{
+
+	"performance": "Average",
+
+	"weighted_performance":  "Average",
+
+	"holdings": "Latest",
 }
 
 var Metrics = util.MapKeys(metricsMap)
