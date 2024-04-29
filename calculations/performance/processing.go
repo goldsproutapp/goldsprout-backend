@@ -3,6 +3,7 @@ package performance
 import (
 	"sort"
 	"strconv"
+	"time"
 
 	"github.com/patrickjonesuk/investment-tracker-backend/constants"
 	"github.com/patrickjonesuk/investment-tracker-backend/models"
@@ -72,10 +73,14 @@ func getTimeCategoryFromSnapshot(snapshot models.StockSnapshot, timeKey string) 
 }
 
 func BuildStockFilter(query models.StockFilterQuery) models.StockFilter {
+	ignoreBefore := time.Unix(int64(util.ParseIntOrDefault(query.FilterIgnoreBefore, 0)), 0)
+	ignoreAfter := time.Unix(int64(util.ParseIntOrDefault(query.FilterIgnoreAfter, 0)), 0)
 	filter := models.StockFilter{
 		Regions:   util.Split(query.FilterRegions, ","),
 		Providers: util.UintArray(query.FilterProviders),
 		Users:     util.UintArray(query.FilterUsers),
+		LowerDate: ignoreBefore,
+		UpperDate: ignoreAfter,
 	}
-    return filter
+	return filter
 }

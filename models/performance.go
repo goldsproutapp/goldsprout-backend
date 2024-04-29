@@ -1,6 +1,8 @@
 package models
 
 import (
+	"time"
+
 	"github.com/shopspring/decimal"
 )
 
@@ -22,10 +24,13 @@ type PerformanceResponse struct {
 }
 
 type PerformanceMap = map[string]map[string]map[string][]StockSnapshot
+
 //                        ^col1      ^col2      ^time
 
 type StockFilter struct {
-    Regions []string
-    Providers []uint
-    Users []uint
+	Regions   []string
+	Providers []uint
+	Users     []uint
+	LowerDate time.Time
+	UpperDate time.Time
 }
