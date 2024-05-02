@@ -10,7 +10,6 @@ import (
 	"github.com/shopspring/decimal"
 )
 
-
 func PerformanceMetric(timeMap map[string][]models.StockSnapshot,
 ) map[string]decimal.Decimal {
 	total := decimal.NewFromInt(0)
@@ -62,30 +61,36 @@ func HoldingsMetric(timeMap map[string][]models.StockSnapshot,
 ) map[string]decimal.Decimal {
 
 	items := map[string]decimal.Decimal{}
-    latestDateTotal := time.Unix(0, 0)
-    latestTimePeriod := ""
+	latestDateTotal := time.Unix(0, 0)
+	latestTimePeriod := ""
 	for timePeriod, snapshots := range timeMap {
 		dateMap := map[string]time.Time{}
 		valueMap := map[string]decimal.Decimal{}
+		latestForPeriod := time.Unix(0, 0)
 		for _, snapshot := range snapshots {
-            key := fmt.Sprintf("%d:%d", snapshot.StockID, snapshot.UserID)
+			key := fmt.Sprintf("%d:%d", snapshot.StockID, snapshot.UserID)
 			latest, existsLatest := dateMap[key]
 			if !existsLatest || snapshot.Date.Compare(latest) == 1 {
 				dateMap[key] = snapshot.Date
 				valueMap[key] = snapshot.Value
 			}
-            if snapshot.Date.Compare(latestDateTotal) == 1 {
-                latestDateTotal = snapshot.Date
-                latestTimePeriod = timePeriod
-            }
+			if snapshot.Date.Compare(latestForPeriod) == 1 {
+				latestForPeriod = snapshot.Date
+			}
+			if snapshot.Date.Compare(latestDateTotal) == 1 {
+				latestDateTotal = snapshot.Date
+				latestTimePeriod = timePeriod
+			}
 		}
 		timeTotal := decimal.NewFromInt(0)
-		for _, value := range valueMap {
-			timeTotal = timeTotal.Add(value)
+		for key, value := range dateMap {
+			if value.Sub(latestForPeriod).Abs().Minutes() < 60 { // If you're doing subsequent imports less than an hour apart then it's your fault that this doesn't work for you.
+				timeTotal = timeTotal.Add(valueMap[key])
+			}
 		}
 		items[timePeriod] = timeTotal
 	}
-    items[SummaryLabels["holdings"]] = items[latestTimePeriod]
+	items[SummaryLabels["holdings"]] = items[latestTimePeriod]
 	return items
 }
 
@@ -103,7 +108,7 @@ var SummaryLabels = map[string]string{
 
 	"performance": "Average",
 
-	"weighted_performance":  "Average",
+	"weighted_performance": "Average",
 
 	"holdings": "Latest",
 }
