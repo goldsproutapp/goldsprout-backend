@@ -172,9 +172,27 @@ bodyLoop:
 	request.Created(ctx, objs)
 }
 
+func DeleteSnapshot(ctx *gin.Context) {
+    errs := []error{}
+    id := util.ParseUint(ctx.Param("id"), &errs)
+    db := middleware.GetDB(ctx)
+    user := middleware.GetUser(ctx)
+    snapshot, err := database.GetSnapshot(db, id)
+    if err != nil {
+        request.NotFound(ctx)
+        return
+    }
+    if !auth.HasAccessPerm(user, snapshot.UserID, false, true) {
+        request.Forbidden(ctx)
+        return
+    }
+    db.Delete(&snapshot)
+    request.NoContent(ctx)
+}
+
 func RegisterSnapshotRoutes(router *gin.RouterGroup) {
 	router.GET("/snapshots/latest", middleware.Authenticate("AccessPermissions"), GetLatestSnapshotList)
 	router.GET("/snapshots/all", middleware.Authenticate("AccessPermissions"), GetAllSnapshots)
-
 	router.POST("/snapshots", middleware.Authenticate("AccessPermissions"), CreateSnapshots)
+    router.DELETE("/snapshots/:id", middleware.Authenticate("AccessPermissions"), DeleteSnapshot)
 }
