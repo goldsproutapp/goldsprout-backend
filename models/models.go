@@ -13,40 +13,33 @@ type Provider struct {
 }
 
 type Stock struct {
-	ID   uint   `json:"id"`
-	Name string `json:"name"`
-
-	Provider   Provider `json:"-"`
-	ProviderID uint     `json:"provider_id"`
-
-	Sector           string `json:"sector"`
-	Region           string `json:"region"`
-	StockCode        string `json:"stockCode"`
-	NeedsAttention   bool   `json:"needs_attention"`                              // If a stock is created automatically then it needs reviewing manually.
-	TrackingStrategy string `json:"tracking_strategy" gorm:"default:DATA_IMPORT"` // DATA_IMPORT | VALUE_INPUT | API_DATA
+	ID               uint     `json:"id"`
+	Name             string   `json:"name"`
+	Provider         Provider `json:"-"`
+	ProviderID       uint     `json:"provider_id"`
+	Sector           string   `json:"sector"`
+	Region           string   `json:"region"`
+	StockCode        string   `json:"stockCode"`
+	NeedsAttention   bool     `json:"needs_attention"`                              // If a stock is created automatically then it needs reviewing manually.
+	TrackingStrategy string   `json:"tracking_strategy" gorm:"default:DATA_IMPORT"` // DATA_IMPORT | VALUE_INPUT | API_DATA
 }
 
 type UserStock struct {
-	ID      uint  `json:"id"`
-	UserID  uint  `json:"user_id"`
-	Stock   Stock `json:"stock"`
-	StockID uint  `json:"stock_id"`
-
+	ID            uint   `json:"id"`
+	UserID        uint   `json:"user_id"`
+	Stock         Stock  `json:"stock"`
+	StockID       uint   `json:"stock_id"`
 	CurrentlyHeld bool   `json:"currently_held"`
 	Notes         string `json:"notes"`
 }
 
 type StockSnapshot struct {
-	ID uint `json:"id"`
-
-	User   User `json:"-"`
-	UserID uint `json:"user_id"`
-
-	Date time.Time `json:"date"`
-
-	Stock   Stock `json:"-"`
-	StockID uint  `json:"stock_id"`
-
+	ID                    uint            `json:"id"`
+	User                  User            `json:"-"`
+	UserID                uint            `json:"user_id"`
+	Date                  time.Time       `json:"date"`
+	Stock                 Stock           `json:"-"`
+	StockID               uint            `json:"stock_id"`
 	Units                 decimal.Decimal `json:"units"`
 	Price                 decimal.Decimal `json:"price"`
 	Cost                  decimal.Decimal `json:"cost"`
@@ -57,12 +50,10 @@ type StockSnapshot struct {
 }
 
 type RegularTransaction struct {
-	ID     uint
-	UserID uint
-
-	Stock   Stock
-	StockID uint
-
+	ID       uint
+	UserID   uint
+	Stock    Stock
+	StockID  uint
 	Amount   decimal.Decimal
 	First    time.Time
 	Last     *time.Time // nullable
@@ -70,14 +61,12 @@ type RegularTransaction struct {
 }
 
 type SingleTransaction struct {
-	ID     uint
-	UserID uint
-
+	ID      uint
+	UserID  uint
 	Stock   Stock
 	StockID uint
-
-	Amount decimal.Decimal
-	Date   time.Time
+	Amount  decimal.Decimal
+	Date    time.Time
 }
 
 type AccessPermission struct {

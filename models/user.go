@@ -3,24 +3,21 @@ package models
 import "time"
 
 type User struct {
-	ID           uint   `json:"id"`
-	Email        string `json:"email"`
-	FirstName    string `json:"first_name"`
-	LastName     string `json:"last_name"`
-	PasswordHash string `json:"-"`
-	TokenHash    string `json:"-"`
-
+	ID                  uint                 `json:"id"`
+	Email               string               `json:"email"`
+	FirstName           string               `json:"first_name"`
+	LastName            string               `json:"last_name"`
+	PasswordHash        string               `json:"-"`
+	TokenHash           string               `json:"-"`
 	Snapshots           []StockSnapshot      `gorm:"foreignKey:UserID" json:"-"`
 	RegularTransactions []RegularTransaction `gorm:"foreignKey:UserID" json:"-"`
 	SingleTransactions  []SingleTransaction  `gorm:"foreignKey:UserID" json:"-"`
-
-	IsAdmin           bool               `json:"is_admin"`
-	AccessPermissions []AccessPermission `gorm:"foreignKey:UserID" json:"access_permissions"`
-	InvitationToken   string             `json:"-"`
-	Active            bool               `json:"active"`
-
-	ClientOpts string    `json:"client_options"` // Likely for colour scheme etc. but the client can do whatever with this.
-	CreatedAt  time.Time `json:"created_at"`
+	IsAdmin             bool                 `json:"is_admin"`
+	AccessPermissions   []AccessPermission   `gorm:"foreignKey:UserID" json:"access_permissions"`
+	InvitationToken     string               `json:"-"`
+	Active              bool                 `json:"active"`
+	ClientOpts          string               `json:"client_options"` // Likely for colour scheme etc. but the client can do whatever with this.
+	CreatedAt           time.Time            `json:"created_at"`
 }
 
 func (u User) Name() string {
