@@ -14,9 +14,9 @@ func Forbidden(ctx *gin.Context) {
 }
 
 func Conflict(ctx *gin.Context) {
-    ctx.AbortWithStatusJSON(http.StatusConflict, gin.H{"success": false, "message": "conflict"})
+	ctx.AbortWithStatusJSON(http.StatusConflict, gin.H{"success": false, "message": "conflict"})
 }
 
 func NotFound(ctx *gin.Context) {
-    ctx.AbortWithStatusJSON(http.StatusNotFound, gin.H{"success": false, "message": "not found"})
+	ctx.AbortWithStatusJSON(http.StatusNotFound, gin.H{"success": false, "message": "not found"})
 }

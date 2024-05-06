@@ -38,20 +38,20 @@ func GetUserVisibility(ctx *gin.Context) {
 }
 
 func UpdateUserInfo(ctx *gin.Context) {
-    db := middleware.GetDB(ctx)
-    user := middleware.GetUser(ctx)
-    var body models.UserUpdateInfo
-    if ctx.BindJSON(&body) != nil {
-        request.BadRequest(ctx)
-        return
-    }
-    user.ApplyUpdate(body)
-    db.Save(&user)
-    request.OK(ctx, user)
+	db := middleware.GetDB(ctx)
+	user := middleware.GetUser(ctx)
+	var body models.UserUpdateInfo
+	if ctx.BindJSON(&body) != nil {
+		request.BadRequest(ctx)
+		return
+	}
+	user.ApplyUpdate(body)
+	db.Save(&user)
+	request.OK(ctx, user)
 }
 
 func RegisterUserRoutes(router *gin.RouterGroup) {
 	router.GET("/users", middleware.Authenticate("AccessPermissions"), GetUserInfo)
 	router.GET("/uservisibility", middleware.Authenticate("AccessPermissions"), GetUserVisibility)
-    router.PATCH("/user", middleware.Authenticate(), UpdateUserInfo)
+	router.PATCH("/user", middleware.Authenticate(), UpdateUserInfo)
 }

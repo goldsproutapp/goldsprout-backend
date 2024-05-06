@@ -26,9 +26,9 @@ func FetchPerformanceData(db *gorm.DB, user models.User, filter models.StockFilt
 	qry := db.Model(&models.StockSnapshot{}).
 		Order("date").
 		Joins("User").
-        Joins("Stock").
-        Joins("INNER JOIN providers ON provider_id = providers.id").
-        Preload("Stock.Provider").
+		Joins("Stock").
+		Joins("INNER JOIN providers ON provider_id = providers.id").
+		Preload("Stock.Provider").
 		Where("user_id IN ?", uids)
 	if len(filter.Providers) > 0 {
 		qry = qry.Where("Stock.provider_id IN ?", filter.Providers)
@@ -36,12 +36,12 @@ func FetchPerformanceData(db *gorm.DB, user models.User, filter models.StockFilt
 	if len(filter.Regions) > 0 {
 		qry = qry.Where("Stock.region IN ?", filter.Regions)
 	}
-    if filter.LowerDate.Unix() != 0 {
-        qry = qry.Where("date > ?", filter.LowerDate)
-    }
-    if filter.UpperDate.Unix() != 0 {
-        qry = qry.Where("date < ?", filter.UpperDate)
-    }
+	if filter.LowerDate.Unix() != 0 {
+		qry = qry.Where("date > ?", filter.LowerDate)
+	}
+	if filter.UpperDate.Unix() != 0 {
+		qry = qry.Where("date < ?", filter.UpperDate)
+	}
 
 	var snapshots []models.StockSnapshot
 	qry.Find(&snapshots)

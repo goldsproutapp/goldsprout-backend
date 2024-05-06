@@ -39,7 +39,7 @@ func SendPlainText(to string, subject string, content string) {
 
 	err := SendMessage(msg)
 	if err != nil {
-        fmt.Println("Error sending email: " + err.Error())
+		fmt.Println("Error sending email: " + err.Error())
 		// TODO: proper log message
 	}
 }
@@ -56,7 +56,7 @@ func TemplateFile(name string) *template.Template {
 }
 
 func FormatInvitationURL(to string, token string) string {
-    return fmt.Sprintf("%s/invitation?t=%s&e=%s",
+	return fmt.Sprintf("%s/invitation?t=%s&e=%s",
 		config.RequiredEnv(config.FRONTEND_BASE_URL),
 		token,
 		base64.StdEncoding.EncodeToString([]byte(to)),
@@ -66,7 +66,7 @@ func FormatInvitationURL(to string, token string) string {
 func SendInvitation(to string, by models.User, token string) bool {
 	msg := newMessage(to, "Invitation to track your investments")
 	url := FormatInvitationURL(to, token)
-    msg.SetBodyHTMLTemplate(TemplateFile("invitation"), map[string]string{
+	msg.SetBodyHTMLTemplate(TemplateFile("invitation"), map[string]string{
 		"Name":      by.Name(),
 		"Email":     by.Email,
 		"AcceptURL": url,
@@ -76,11 +76,11 @@ func SendInvitation(to string, by models.User, token string) bool {
 }
 
 func SendSetupInvitation(to string, token string) bool {
-    msg := newMessage(to, "Set up your account to track your investments")
-    url := FormatInvitationURL(to, token)
-    msg.SetBodyHTMLTemplate(TemplateFile("setup"), map[string]string{
-        "AcceptURL": url,
-    })
-    err := SendMessage(msg)
-    return err == nil
+	msg := newMessage(to, "Set up your account to track your investments")
+	url := FormatInvitationURL(to, token)
+	msg.SetBodyHTMLTemplate(TemplateFile("setup"), map[string]string{
+		"AcceptURL": url,
+	})
+	err := SendMessage(msg)
+	return err == nil
 }

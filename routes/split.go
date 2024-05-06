@@ -15,12 +15,12 @@ func Split(ctx *gin.Context) {
 	db := middleware.GetDB(ctx)
 	user := middleware.GetUser(ctx)
 
-    var query models.StockFilterQuery
-    if ctx.BindQuery(&query) != nil {
-        request.BadRequest(ctx)
-        return
-    }
-    filter := performance.BuildStockFilter(query)
+	var query models.StockFilterQuery
+	if ctx.BindQuery(&query) != nil {
+		request.BadRequest(ctx)
+		return
+	}
+	filter := performance.BuildStockFilter(query)
 
 	snapshots := database.FetchPerformanceData(db, user, filter)
 	categories := []string{"region", "sector", "provider", "stock"}

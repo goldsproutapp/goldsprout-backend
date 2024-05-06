@@ -14,7 +14,6 @@ import (
 	"github.com/shopspring/decimal"
 )
 
-
 func Perfomance(ctx *gin.Context) {
 	var query models.PerformanceRequestQuery
 	err := ctx.BindQuery(&query)
@@ -78,7 +77,7 @@ func PortfolioPerformance(ctx *gin.Context) {
 	db := middleware.GetDB(ctx)
 	snapshots := database.GetAllSnapshots(user, db)
 	perf := map[time.Time][]decimal.Decimal{}
-    value := map[time.Time][]decimal.Decimal{}
+	value := map[time.Time][]decimal.Decimal{}
 	for _, snapshot := range snapshots {
 		if util.ContainsKey(perf, snapshot.Date) {
 			perf[snapshot.Date] = append(perf[snapshot.Date], snapshot.NormalisedPerformance)
@@ -88,7 +87,7 @@ func PortfolioPerformance(ctx *gin.Context) {
 		if util.ContainsKey(value, snapshot.Date) {
 			value[snapshot.Date] = append(value[snapshot.Date], snapshot.Value)
 		} else {
-            value[snapshot.Date] = []decimal.Decimal{snapshot.Value}
+			value[snapshot.Date] = []decimal.Decimal{snapshot.Value}
 		}
 	}
 	perfOut := map[time.Time]decimal.Decimal{}
@@ -99,7 +98,7 @@ func PortfolioPerformance(ctx *gin.Context) {
 	for time, list := range value {
 		valueOut[time] = decimal.Sum(list[0], list[1:]...).Truncate(2)
 	}
-    ctx.JSON(http.StatusOK, gin.H{"performance": perfOut, "value": valueOut})
+	ctx.JSON(http.StatusOK, gin.H{"performance": perfOut, "value": valueOut})
 }
 
 func RegisterPerformanceRoutes(router *gin.RouterGroup) {

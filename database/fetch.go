@@ -169,7 +169,7 @@ func GetAllUsers(db *gorm.DB, preload ...string) []models.User {
 }
 
 func GetSnapshot(db *gorm.DB, id uint) (models.StockSnapshot, error) {
-    var obj models.StockSnapshot
-    result := db.Model(models.StockSnapshot{}).Where("id = ?", id).First(&obj)
-    return obj, result.Error
+	var obj models.StockSnapshot
+	result := db.Model(models.StockSnapshot{}).Where("id = ?", id).First(&obj)
+	return obj, result.Error
 }
