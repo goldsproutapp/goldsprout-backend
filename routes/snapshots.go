@@ -67,6 +67,7 @@ func CreateSnapshots(ctx *gin.Context) {
 					StockCode:        snapshot.StockCode,
 					NeedsAttention:   true, // The defaults set above need manually reviewing
 					TrackingStrategy: constants.STRATEGY_DATA_IMPORT,
+					AnnualFee:        0,
 				}
 				res := db.Create(&globalStock)
 				if res.Error != nil {

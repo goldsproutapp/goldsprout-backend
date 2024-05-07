@@ -7,21 +7,23 @@ import (
 )
 
 type Provider struct {
-	ID        uint   `json:"id"`
-	Name      string `json:"name"`
-	CSVFormat string `json:"csv_format"`
+	ID        uint    `json:"id"`
+	Name      string  `json:"name"`
+	CSVFormat string  `json:"csv_format"`
+	AnnualFee float32 `json:"annual_fee,omitempty"`
 }
 
 type Stock struct {
-	ID               uint     `json:"id"`
-	Name             string   `json:"name"`
-	Provider         Provider `json:"-"`
-	ProviderID       uint     `json:"provider_id"`
-	Sector           string   `json:"sector"`
-	Region           string   `json:"region"`
-	StockCode        string   `json:"stockCode"`
-	NeedsAttention   bool     `json:"needs_attention"`                              // If a stock is created automatically then it needs reviewing manually.
-	TrackingStrategy string   `json:"tracking_strategy" gorm:"default:DATA_IMPORT"` // DATA_IMPORT | VALUE_INPUT | API_DATA
+	ID               uint     `json:"id,omitempty"`
+	Name             string   `json:"name,omitempty"`
+	Provider         Provider `json:"provider,omitempty"`
+	ProviderID       uint     `json:"provider_id,omitempty"`
+	Sector           string   `json:"sector,omitempty"`
+	Region           string   `json:"region,omitempty"`
+	StockCode        string   `json:"stock_code,omitempty"`
+	NeedsAttention   bool     `json:"needs_attention,omitempty"`                              // If a stock is created automatically then it needs reviewing manually.
+	TrackingStrategy string   `json:"tracking_strategy,omitempty" gorm:"default:DATA_IMPORT"` // DATA_IMPORT | VALUE_INPUT | API_DATA
+	AnnualFee        float32  `json:"annual_fee,omitempty"`
 }
 
 type UserStock struct {
