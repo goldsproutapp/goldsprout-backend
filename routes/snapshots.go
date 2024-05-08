@@ -106,7 +106,7 @@ bodyLoop:
 		errList := []error{}
 		price := util.ParseDecimal(snapshot.Price, &errList)
 		value := util.ParseDecimal(snapshot.Value, &errList)
-		totalChange := util.ParseDecimal(snapshot.AbsoluteChange, &errList)
+		totalChange := util.ParseDecimal(snapshot.AbsoluteChange, &[]error{})
 		date := time.Unix(body.Date, 0)
 
 		obj := models.StockSnapshot{
