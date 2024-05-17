@@ -103,11 +103,16 @@ bodyLoop:
 		userStock := userStocks[i]
 		prevSnapshot := prevSnapshots[i]
 
+		date := time.Unix(body.Date, 0)
+		if prevSnapshot != nil && date.Sub(prevSnapshot.Date).Abs().Hours() < 1 {
+			request.Conflict(ctx)
+			return
+		}
+
 		errList := []error{}
 		price := util.ParseDecimal(snapshot.Price, &errList)
 		value := util.ParseDecimal(snapshot.Value, &errList)
 		totalChange := util.ParseDecimal(snapshot.AbsoluteChange, &[]error{})
-		date := time.Unix(body.Date, 0)
 
 		obj := models.StockSnapshot{
 			UserID:                body.UserID,
