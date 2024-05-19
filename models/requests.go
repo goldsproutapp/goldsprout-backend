@@ -71,3 +71,8 @@ type SetPermissionsRequestItem struct {
 type MassDeleteRequest struct {
 	Stocks bool `json:"stocks,omitempty"`
 }
+
+type StockMergeRequest struct {
+	MergeInto uint `binding:"required" json:"merge_into,omitempty"`
+	Stock     uint `binding:"required" json:"stock,omitempty"`
+}

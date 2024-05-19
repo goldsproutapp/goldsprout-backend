@@ -1,6 +1,8 @@
 package auth
 
-import "github.com/patrickjonesuk/investment-tracker-backend/models"
+import (
+	"github.com/patrickjonesuk/investment-tracker-backend/models"
+)
 
 func GetAllowedUsers(user models.User, requireRead bool, requireWrite bool) []uint {
 	var userIds []uint
@@ -25,3 +27,4 @@ func HasAccessPerm(user models.User, forUser uint, requireRead bool, requireWrit
 	}
 	return false
 }
+
