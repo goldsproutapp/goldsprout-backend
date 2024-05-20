@@ -47,24 +47,24 @@ func MergeStocks(ctx *gin.Context) {
 		request.Forbidden(ctx)
 		return
 	}
-    db.Model(&models.StockSnapshot{}).Where("stock_id = ?", body.Stock).Update("stock_id", body.MergeInto)
-    var userStocks []models.UserStock
-    db.Model(&models.UserStock{}).Where("stock_id = ?", body.Stock).Find(&userStocks)
-    for _, us := range userStocks {
-        if !database.Exists(db.Model(&models.UserStock{}).Where("stock_id = ? AND user_id = ?", body.MergeInto, us.UserID)) {
-            us.StockID = body.MergeInto
-            db.Save(&us)
-        } else {
-            db.Delete(&us)
-        }
-    }
-    db.Model(&models.UserStock{}).Where("stock_id = ?", body.Stock).Update("stock_id", body.MergeInto)
-    db.Delete(&models.Stock{}, body.Stock)
-    request.NoContent(ctx)
+	db.Model(&models.StockSnapshot{}).Where("stock_id = ?", body.Stock).Update("stock_id", body.MergeInto)
+	var userStocks []models.UserStock
+	db.Model(&models.UserStock{}).Where("stock_id = ?", body.Stock).Find(&userStocks)
+	for _, us := range userStocks {
+		if !database.Exists(db.Model(&models.UserStock{}).Where("stock_id = ? AND user_id = ?", body.MergeInto, us.UserID)) {
+			us.StockID = body.MergeInto
+			db.Save(&us)
+		} else {
+			db.Delete(&us)
+		}
+	}
+	db.Model(&models.UserStock{}).Where("stock_id = ?", body.Stock).Update("stock_id", body.MergeInto)
+	db.Delete(&models.Stock{}, body.Stock)
+	request.NoContent(ctx)
 }
 
 func RegisterStockRoutes(router *gin.RouterGroup) {
 	router.GET("/stocks", middleware.Authenticate("AccessPermissions"), GetAllStocks)
 	router.PUT("/stocks", middleware.Authenticate("AccessPermissions"), UpdateStock)
-    router.POST("/stocks/merge", middleware.Authenticate("AccessPermissions"), MergeStocks)
+	router.POST("/stocks/merge", middleware.Authenticate("AccessPermissions"), MergeStocks)
 }

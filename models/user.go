@@ -13,6 +13,7 @@ type User struct {
 	RegularTransactions []RegularTransaction `gorm:"foreignKey:UserID" json:"-"`
 	SingleTransactions  []SingleTransaction  `gorm:"foreignKey:UserID" json:"-"`
 	IsAdmin             bool                 `json:"is_admin"`
+	Trusted             bool                 `json:"trusted"`
 	AccessPermissions   []AccessPermission   `gorm:"foreignKey:UserID" json:"access_permissions"`
 	InvitationToken     string               `json:"-"`
 	Active              bool                 `json:"active"`

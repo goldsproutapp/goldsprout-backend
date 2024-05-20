@@ -38,6 +38,7 @@ func CreateInitialAdminAccount(db *gorm.DB) {
 			LastName:        config.RequiredEnv(config.ENVKEY_ADMIN_LNAME),
 			TokenHash:       "", // NOTE: I'm assuming that this is safe due to hashes being fixed length
 			IsAdmin:         true,
+			Trusted:         true,
 			Active:          false,
 		}
 		db.Create(&user)

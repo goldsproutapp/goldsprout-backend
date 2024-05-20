@@ -5,6 +5,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/patrickjonesuk/investment-tracker-backend/auth"
+	"github.com/patrickjonesuk/investment-tracker-backend/database"
 	"github.com/patrickjonesuk/investment-tracker-backend/email"
 	"github.com/patrickjonesuk/investment-tracker-backend/middleware"
 	"github.com/patrickjonesuk/investment-tracker-backend/models"
@@ -37,6 +38,7 @@ func InviteUser(ctx *gin.Context) {
 		InvitationToken: auth.GenerateToken(),
 
 		IsAdmin:      false,
+		Trusted:      false,
 		Active:       false,
 		PasswordHash: "",
 		TokenHash:    "",
@@ -60,11 +62,12 @@ func SetPermissions(ctx *gin.Context) {
 		return
 	}
 	var user models.User
-	res := db.Where("user_id = ?", body.User).Preload("AccessPermissions").First(&user)
-	if errors.Is(res.Error, gorm.ErrRecordNotFound) {
+	if !database.Exists(db.Model(&models.User{}).Where("id = ?", body.User).Preload("AccessPermissions").First(&user)) {
 		request.NotFound(ctx)
 		return
 	}
+	user.Trusted = *body.Trusted
+	db.Save(&user)
 	permissionMap := map[uint]models.AccessPermission{}
 	for _, perm := range user.AccessPermissions {
 		permissionMap[perm.AccessForID] = perm
@@ -93,7 +96,7 @@ func SetPermissions(ctx *gin.Context) {
 	}
 	db.Delete(&toDelete)
 	db.Save(&updatePermissions)
-	request.OK(ctx, gin.H{})
+	request.OK(ctx, user)
 }
 
 func MassDelete(ctx *gin.Context) {

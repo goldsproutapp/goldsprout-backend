@@ -61,6 +61,7 @@ type PasswordChangeRequest struct {
 type SetPermissionsRequest struct {
 	User        uint                        `binding:"required" json:"user,omitempty"`
 	Permissions []SetPermissionsRequestItem `binding:"required" json:"permissions,omitempty"`
+	Trusted     *bool                       `binding:"required" json:"trusted,omitempty"`
 }
 type SetPermissionsRequestItem struct {
 	ForUser uint `binding:"required" json:"for_user,omitempty"`

@@ -1,6 +1,8 @@
 package database
 
 import (
+	"slices"
+
 	"github.com/patrickjonesuk/investment-tracker-backend/auth"
 	"github.com/patrickjonesuk/investment-tracker-backend/models"
 	"gorm.io/gorm"
@@ -19,6 +21,9 @@ func CanModifyStock(db *gorm.DB, user models.User, id uint) bool {
 	if err != nil {
 		return false
 	}
+    if user.Trusted && slices.Contains(uids, user.ID) {
+        return true;
+    }
 	for _, uid := range uids {
 		if uid != user.ID && !auth.HasAccessPerm(user, uid, false, true) {
 			return false
