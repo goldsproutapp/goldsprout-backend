@@ -7,7 +7,7 @@ import (
 func GetAllowedUsers(user models.User, requireRead bool, requireWrite bool) []uint {
 	var userIds []uint
 	for _, perm := range user.AccessPermissions {
-		uid := perm.AccessFor.ID
+		uid := perm.AccessForID
 		if (perm.Read || !requireRead) && (perm.Write || !requireWrite) {
 			userIds = append(userIds, uid)
 		}
