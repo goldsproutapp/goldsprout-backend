@@ -51,10 +51,17 @@ func MergeStocks(ctx *gin.Context) {
 	var userStocks []models.UserStock
 	db.Model(&models.UserStock{}).Where("stock_id = ?", body.Stock).Find(&userStocks)
 	for _, us := range userStocks {
-		if !database.Exists(db.Model(&models.UserStock{}).Where("stock_id = ? AND user_id = ?", body.MergeInto, us.UserID)) {
+		var otherUS models.UserStock
+		if !database.Exists(db.Model(&models.UserStock{}).
+			Where("stock_id = ? AND user_id = ?", body.MergeInto, us.UserID).
+			First(&otherUS)) {
 			us.StockID = body.MergeInto
 			db.Save(&us)
 		} else {
+			if us.CurrentlyHeld && !otherUS.CurrentlyHeld {
+				otherUS.CurrentlyHeld = true
+				db.Save(&otherUS)
+			}
 			db.Delete(&us)
 		}
 	}
