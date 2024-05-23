@@ -78,11 +78,49 @@ func GetGlobalStockByName(db *gorm.DB, name string, provider uint) (models.Stock
 	return obj, result.Error
 }
 
-func GetUserStockByName(db *gorm.DB, uid uint, name string) (models.UserStock, error) {
+func GetUserStockByName(db *gorm.DB, uid uint, name string, providerID uint) (models.UserStock, error) {
 	var obj models.UserStock
-	result := db.Model(models.UserStock{}).Joins("INNER JOIN stocks on stocks.id = user_stocks.stock_id").Where("user_id = ? AND stocks.name = ?", uid, name).First(&obj)
+	result := db.Model(models.UserStock{}).
+		Joins("INNER JOIN stocks on stocks.id = user_stocks.stock_id").
+		Where("user_id = ? AND stocks.name = ? AND stocks.provider_id = ?",
+			uid, name, providerID).
+		First(&obj)
 	return obj, result.Error
 }
+func GetUserStockByNameOrCode(db *gorm.DB, uid uint, name string, code string, providerID uint) (models.UserStock, error) {
+	if code == "" {
+		return GetUserStockByName(db, uid, name, providerID)
+	}
+	var obj models.UserStock
+	result := db.Model(models.UserStock{}).
+		Joins("INNER JOIN stocks on stocks.id = user_stocks.stock_id").
+		Where("user_id = ? AND (stocks.stock_code = ? OR stocks.name = ?) AND stocks.provider_id = ?",
+			uid, code, name, providerID).
+		First(&obj)
+	return obj, result.Error
+}
+func GetGlobalStockByNameOrCode(db *gorm.DB, name string, code string, providerID uint) (models.Stock, error) {
+	if code == "" {
+		return GetGlobalStockByName(db, name, providerID)
+	}
+	var obj models.Stock
+	result := db.Model(models.Stock{}).
+		Where("provider_id = ? AND (stock_code = ? OR name = ?)",
+			providerID, code, name).
+		First(&obj)
+	return obj, result.Error
+}
+
+func GetUserStock(db *gorm.DB, uid uint, stockID uint) (models.UserStock, error) {
+	var obj models.UserStock
+
+	result := db.Model(models.UserStock{}).
+		Joins("INNER JOIN stocks on stocks.id = user_stocks.stock_id").
+		Where("stock_id = ? AND user_id = ?", stockID, uid).
+		First(&obj)
+	return obj, result.Error
+}
+
 func GetUsersHoldingStock(db *gorm.DB, stockID uint) ([]uint, error) {
 	var userStocks []models.UserStock
 	result := db.Model(models.UserStock{}).Where("stock_id = ?", stockID).Find(&userStocks)

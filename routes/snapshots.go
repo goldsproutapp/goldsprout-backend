@@ -52,29 +52,30 @@ func CreateSnapshots(ctx *gin.Context) {
 		return
 	}
 	userStocks := make([]models.UserStock, len(body.Entries))
-	stockIDs := make([]uint, len(body.Entries))
+	stockIDs := util.NewHashSet[uint]()
 	providerIDs := util.NewHashSet[uint]()
 	for i, snapshot := range body.Entries {
-		userStock, err := database.GetUserStockByName(db, body.UserID, snapshot.StockName)
+		globalStock, err := database.GetGlobalStockByNameOrCode(
+			db, snapshot.StockName, snapshot.StockCode, snapshot.ProviderID)
 		if err != nil {
-			globalStock, err := database.GetGlobalStockByName(db, snapshot.StockName, snapshot.ProviderID)
-			if err != nil {
-				globalStock = models.Stock{
-					Name:             snapshot.StockName,
-					ProviderID:       snapshot.ProviderID,
-					Sector:           constants.DEFAULT_SECTOR_NAME,
-					Region:           constants.DEFAULT_REGION_NAME,
-					StockCode:        snapshot.StockCode,
-					NeedsAttention:   true, // The defaults set above need manually reviewing
-					TrackingStrategy: constants.STRATEGY_DATA_IMPORT,
-					AnnualFee:        0,
-				}
-				res := db.Create(&globalStock)
-				if res.Error != nil {
-					request.BadRequest(ctx)
-					return
-				}
+			globalStock = models.Stock{
+				Name:             snapshot.StockName,
+				ProviderID:       snapshot.ProviderID,
+				Sector:           constants.DEFAULT_SECTOR_NAME,
+				Region:           constants.DEFAULT_REGION_NAME,
+				StockCode:        snapshot.StockCode,
+				NeedsAttention:   true, // The defaults set above need manually reviewing
+				TrackingStrategy: constants.STRATEGY_DATA_IMPORT,
+				AnnualFee:        0,
 			}
+			res := db.Create(&globalStock)
+			if res.Error != nil {
+				request.BadRequest(ctx)
+				return
+			}
+		}
+		userStock, err := database.GetUserStock(db, body.UserID, globalStock.ID)
+		if err != nil {
 			userStock = models.UserStock{
 				UserID:        body.UserID,
 				StockID:       globalStock.ID,
@@ -87,12 +88,21 @@ func CreateSnapshots(ctx *gin.Context) {
 				return
 			}
 		}
+		// NOTE: is there a case to made for relaxing the permission requirements here?
+		if database.CanModifyStock(db, user, globalStock.ID) {
+			globalStock.Name = snapshot.StockName
+			if snapshot.StockCode != "" {
+				globalStock.StockCode = snapshot.StockCode
+			}
+			db.Save(&globalStock)
+		}
+
 		if !userStock.CurrentlyHeld {
 			userStock.CurrentlyHeld = true
 			db.Save(&userStock)
 		}
 		userStocks[i] = userStock
-		stockIDs[i] = userStock.StockID
+		stockIDs.Add(userStock.StockID)
 		providerIDs.Add(snapshot.ProviderID)
 	}
 	prevSnapshots := database.GetLatestSnapshots(userStocks, db)
@@ -166,7 +176,7 @@ bodyLoop:
 		db.Model(&models.UserStock{}).
 			Joins("INNER JOIN stocks on stocks.id = user_stocks.stock_id").
 			Where("user_id = ?", body.UserID).
-			Where("stock_id NOT IN ?", stockIDs).
+			Where("stock_id NOT IN ?", stockIDs.Items()).
 			Where("stocks.provider_id IN ?", providerIDs.Items()).
 			Find(&toUpdate)
 		toUpdateIDs := make([]uint, len(toUpdate))
