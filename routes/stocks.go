@@ -4,10 +4,13 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/patrickjonesuk/investment-tracker-backend/auth"
 	"github.com/patrickjonesuk/investment-tracker-backend/database"
 	"github.com/patrickjonesuk/investment-tracker-backend/middleware"
 	"github.com/patrickjonesuk/investment-tracker-backend/models"
 	"github.com/patrickjonesuk/investment-tracker-backend/request"
+	"github.com/patrickjonesuk/investment-tracker-backend/util"
+	"github.com/shopspring/decimal"
 )
 
 func GetAllStocks(ctx *gin.Context) {
@@ -15,6 +18,38 @@ func GetAllStocks(ctx *gin.Context) {
 	user := middleware.GetUser(ctx)
 	userStocks := database.GetVisibleStockList(user, db)
 	ctx.JSON(http.StatusOK, userStocks)
+}
+
+func GetHoldings(ctx *gin.Context) {
+	db := middleware.GetDB(ctx)
+	user := middleware.GetUser(ctx)
+	userStocks := database.GetVisibleStockList(user, db)
+	snapshots := database.GetLatestSnapshots(userStocks, db)
+	byUser := map[uint]map[uint]decimal.Decimal{}
+	byStock := map[uint]map[uint]decimal.Decimal{}
+	for i, snapshot := range snapshots {
+		if snapshot == nil {
+			continue
+		}
+		_, ok := byUser[snapshot.UserID]
+		if !ok {
+			byUser[snapshot.UserID] = map[uint]decimal.Decimal{}
+		}
+		_, ok = byStock[snapshot.StockID]
+		if !ok {
+			byStock[snapshot.StockID] = map[uint]decimal.Decimal{}
+		}
+		v := decimal.NewFromInt(0)
+		if userStocks[i].CurrentlyHeld {
+			v = snapshot.Value
+		}
+		byUser[snapshot.UserID][snapshot.StockID] = v
+		byStock[snapshot.StockID][snapshot.UserID] = v
+	}
+	request.OK(ctx, gin.H{
+		"by_user": byUser, "by_stock": byStock,
+	})
+
 }
 
 func UpdateStock(ctx *gin.Context) {
@@ -71,6 +106,7 @@ func MergeStocks(ctx *gin.Context) {
 }
 
 func RegisterStockRoutes(router *gin.RouterGroup) {
+	router.GET("/holdings", middleware.Authenticate("AccessPermissions"), GetHoldings)
 	router.GET("/stocks", middleware.Authenticate("AccessPermissions"), GetAllStocks)
 	router.PUT("/stocks", middleware.Authenticate("AccessPermissions"), UpdateStock)
 	router.POST("/stocks/merge", middleware.Authenticate("AccessPermissions"), MergeStocks)
