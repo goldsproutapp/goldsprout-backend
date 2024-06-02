@@ -4,12 +4,10 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/patrickjonesuk/investment-tracker-backend/auth"
 	"github.com/patrickjonesuk/investment-tracker-backend/database"
 	"github.com/patrickjonesuk/investment-tracker-backend/middleware"
 	"github.com/patrickjonesuk/investment-tracker-backend/models"
 	"github.com/patrickjonesuk/investment-tracker-backend/request"
-	"github.com/patrickjonesuk/investment-tracker-backend/util"
 	"github.com/shopspring/decimal"
 )
 

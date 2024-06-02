@@ -80,3 +80,11 @@ func Split(input string, sep string) []string {
 	}
 	return strings.Split(input, sep)
 }
+
+func UpdateIfSet[T comparable](existing T, replacement T) T {
+    empty := *new(T)
+    if replacement == empty {
+        return existing
+    }
+    return replacement
+}

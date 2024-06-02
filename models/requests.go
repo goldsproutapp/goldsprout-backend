@@ -1,15 +1,17 @@
 package models
 
 type StockSnapshotCreationPayload struct {
-	ProviderID uint   `binding:"required" json:"provider_id"`
-	StockName  string `binding:"required" json:"stock_name"`
-	StockCode  string `binding:"required" json:"stock_code"`
-	Units      string `binding:"required" json:"units"`
-	Price      string `binding:"required" json:"price"`
-	Cost       string `binding:"required" json:"cost"`
-	Value      string `binding:"required" json:"value"`
-
+	ProviderID     uint   `binding:"required" json:"provider_id"`
+	StockName      string `binding:"required" json:"stock_name"`
+	StockCode      string `binding:"required" json:"stock_code"`
+	Units          string `binding:"required" json:"units"`
+	Price          string `binding:"required" json:"price"`
+	Cost           string `binding:"required" json:"cost"`
+	Value          string `binding:"required" json:"value"`
 	AbsoluteChange string `binding:"required" json:"absolute_change"`
+
+	Sector string `json:"sector"`
+	Region string `json:"region"`
 }
 
 type StockSnapshotCreationRequest struct {

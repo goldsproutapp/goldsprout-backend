@@ -90,6 +90,8 @@ func CreateSnapshots(ctx *gin.Context) {
 		}
 		// NOTE: is there a case to made for relaxing the permission requirements here?
 		if database.CanModifyStock(db, user, globalStock.ID) {
+			globalStock.Region = util.UpdateIfSet(globalStock.Region, snapshot.Region)
+			globalStock.Sector = util.UpdateIfSet(globalStock.Sector, snapshot.Sector)
 			globalStock.Name = snapshot.StockName
 			if snapshot.StockCode != "" {
 				globalStock.StockCode = snapshot.StockCode
