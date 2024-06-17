@@ -10,6 +10,7 @@ type User struct {
 	PasswordHash        string               `json:"-"`
 	TokenHash           string               `json:"-"`
 	Snapshots           []StockSnapshot      `gorm:"foreignKey:UserID" json:"-"`
+	Accounts            []Account            `gorm:"foreignKey:UserID" json:"-"`
 	RegularTransactions []RegularTransaction `gorm:"foreignKey:UserID" json:"-"`
 	SingleTransactions  []SingleTransaction  `gorm:"foreignKey:UserID" json:"-"`
 	IsAdmin             bool                 `json:"is_admin"`
