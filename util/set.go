@@ -21,12 +21,20 @@ func (s *HashSet[T]) Size() int {
 	return len(s.hashMap)
 }
 
-func NewHashSet[T comparable]() HashSet[T] {
-	return HashSet[T]{hashMap: map[T]bool{}}
+func NewHashSet[T comparable]() *HashSet[T] {
+	return &HashSet[T]{hashMap: map[T]bool{}}
+}
+
+func HashSetFrom[T comparable](arr []T) *HashSet[T] {
+    set := NewHashSet[T]()
+    for _, item := range arr {
+        set.Add(item)
+    }
+    return set
 }
 
 type OrderedSet[T comparable] struct {
-	hashSet HashSet[T]
+	hashSet *HashSet[T]
 	order   []T
 }
 
@@ -45,6 +53,6 @@ func (s *OrderedSet[T]) Items() []T {
 	return s.order
 }
 
-func NewOrderedSet[T comparable]() OrderedSet[T] {
-	return OrderedSet[T]{hashSet: NewHashSet[T](), order: []T{}}
+func NewOrderedSet[T comparable]() *OrderedSet[T] {
+	return &OrderedSet[T]{hashSet: NewHashSet[T](), order: []T{}}
 }
