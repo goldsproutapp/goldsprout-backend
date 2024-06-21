@@ -82,9 +82,9 @@ func Split(input string, sep string) []string {
 }
 
 func UpdateIfSet[T comparable](existing T, replacement T) T {
-    empty := *new(T)
-    if replacement == empty {
-        return existing
-    }
-    return replacement
+	empty := *new(T)
+	if replacement == empty {
+		return existing
+	}
+	return replacement
 }

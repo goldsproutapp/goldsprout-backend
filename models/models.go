@@ -16,9 +16,9 @@ type Provider struct {
 type Account struct {
 	ID         uint     `json:"id,omitempty"`
 	Name       string   `json:"name,omitempty"`
-	Provider   Provider `json:"provider,omitempty"`
+	Provider   Provider `json:"-"`
 	ProviderID uint     `json:"provider_id,omitempty"`
-	User       User     `json:"user,omitempty"`
+	User       User     `json:"-"`
 	UserID     uint     `json:"user_id,omitempty"`
 }
 

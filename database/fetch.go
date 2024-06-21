@@ -218,6 +218,6 @@ func GetVisibleAccounts(db *gorm.DB, user models.User) ([]models.Account, error)
 }
 func GetAccount(db *gorm.DB, id uint) (models.Account, error) {
 	var account models.Account
-	res := db.Model(&models.Account{}).Where("id = ?", id).First(account)
+	res := db.Model(&models.Account{}).Where("id = ?", id).First(&account)
 	return account, res.Error
 }

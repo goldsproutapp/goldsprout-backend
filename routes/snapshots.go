@@ -186,7 +186,7 @@ bodyLoop:
 		db.Model(&models.UserStock{}).
 			Joins("INNER JOIN stocks on stocks.id = user_stocks.stock_id").
 			Where("user_id = ?", account.UserID).
-            Where("account_id = ?", account.ID).
+			Where("account_id = ?", account.ID).
 			Where("stock_id NOT IN ?", stockIDs.Items()).
 			Where("stocks.provider_id IN ?", providerIDs.Items()).
 			Find(&toUpdate)

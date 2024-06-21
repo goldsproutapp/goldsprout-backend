@@ -27,4 +27,3 @@ func HasAccessPerm(user models.User, forUser uint, requireRead bool, requireWrit
 	}
 	return false
 }
-
