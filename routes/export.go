@@ -1,6 +1,7 @@
 package routes
 
 import (
+	"strconv"
 	"strings"
 
 	"github.com/gin-gonic/gin"
@@ -18,6 +19,7 @@ var headings = []string{
 	"stock_name",
 	"region",
 	"sector",
+	"annual_fee",
 	"units",
 	"price",
 	"cost",
@@ -34,6 +36,7 @@ func FormatCSV(snapshot models.StockSnapshot) string {
 		snapshot.Stock.Name,
 		snapshot.Stock.Region,
 		snapshot.Stock.Sector,
+		strconv.FormatFloat(float64(snapshot.Stock.AnnualFee), 'f', 2, 64),
 		snapshot.Units.String(),
 		snapshot.Price.String(),
 		snapshot.Cost.String(),
@@ -49,13 +52,13 @@ func ExportToCSV(ctx *gin.Context) {
 	db := middleware.GetDB(ctx)
 	snapshots := database.GetAllSnapshots(user, db, clause.Associations, "Stock.Provider")
 	outputArr := make([]string, len(snapshots)+1)
-    outputArr[0] = strings.Join(headings, ",")
+	outputArr[0] = strings.Join(headings, ",")
 	for i, snapshot := range snapshots {
 		str := FormatCSV(snapshot)
 		outputArr[i+1] = str
 	}
-    output := strings.Join(outputArr, "\n")
-    request.FileOK(ctx, "export.csv", output)
+	output := strings.Join(outputArr, "\n")
+	request.FileOK(ctx, "export.csv", output)
 }
 
 func RegisterExportRoutes(router *gin.RouterGroup) {
