@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/gin-gonic/gin"
+	"github.com/patrickjonesuk/investment-tracker-backend/constants"
 	"github.com/patrickjonesuk/investment-tracker-backend/database"
 	"github.com/patrickjonesuk/investment-tracker-backend/middleware"
 	"github.com/patrickjonesuk/investment-tracker-backend/models"
@@ -13,6 +14,7 @@ import (
 )
 
 var headings = []string{
+	"date",
 	"user",
 	"provider",
 	"stock_code",
@@ -30,6 +32,7 @@ var headings = []string{
 
 func FormatCSV(snapshot models.StockSnapshot) string {
 	fields := []string{
+		snapshot.Date.Format(constants.ISO8601),
 		snapshot.User.Name(),
 		snapshot.Stock.Provider.Name,
 		snapshot.Stock.StockCode,
