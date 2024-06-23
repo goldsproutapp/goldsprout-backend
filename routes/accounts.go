@@ -7,6 +7,7 @@ import (
 	"github.com/patrickjonesuk/investment-tracker-backend/middleware"
 	"github.com/patrickjonesuk/investment-tracker-backend/models"
 	"github.com/patrickjonesuk/investment-tracker-backend/request"
+	"github.com/shopspring/decimal"
 )
 
 func GetAccounts(ctx *gin.Context) {
@@ -15,9 +16,31 @@ func GetAccounts(ctx *gin.Context) {
 	accounts, err := database.GetVisibleAccounts(db, user)
 	if err != nil {
 		request.BadRequest(ctx)
-	} else {
-		request.OK(ctx, accounts)
+		return
 	}
+	out := make([]models.AccountReponse, len(accounts))
+	for i, acc := range accounts {
+		userStocks, err := database.GetStocksForAccount(db, acc.ID)
+		if err != nil {
+			request.BadRequest(ctx) // TODO: this isn't really the right response code here
+			return
+		}
+		var numStocks uint = 0
+		value := decimal.NewFromInt(0)
+		snapshots := database.GetLatestSnapshots(userStocks, db)
+		for _, snapshot := range snapshots {
+			if snapshot != nil {
+				value = value.Add(snapshot.Value)
+				numStocks += 1
+			}
+		}
+		out[i] = models.AccountReponse{
+			Account:    acc,
+			Value:      value,
+			StockCount: numStocks,
+		}
+	}
+	request.OK(ctx, out)
 }
 
 func CreateAccount(ctx *gin.Context) {

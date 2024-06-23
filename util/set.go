@@ -26,11 +26,11 @@ func NewHashSet[T comparable]() *HashSet[T] {
 }
 
 func HashSetFrom[T comparable](arr []T) *HashSet[T] {
-    set := NewHashSet[T]()
-    for _, item := range arr {
-        set.Add(item)
-    }
-    return set
+	set := NewHashSet[T]()
+	for _, item := range arr {
+		set.Add(item)
+	}
+	return set
 }
 
 type OrderedSet[T comparable] struct {

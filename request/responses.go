@@ -20,7 +20,7 @@ func NoContent(ctx *gin.Context) {
 }
 
 func FileOK(ctx *gin.Context, filename string, content string) {
-    ctx.Header("Content-Disposition", fmt.Sprintf("attachment; filename=%s", filename))
-    ctx.Header("Content-Type", "text/plain")
-    ctx.Writer.WriteString(content)
+	ctx.Header("Content-Disposition", fmt.Sprintf("attachment; filename=%s", filename))
+	ctx.Header("Content-Type", "text/plain")
+	ctx.Writer.WriteString(content)
 }

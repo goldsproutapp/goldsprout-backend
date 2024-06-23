@@ -18,3 +18,9 @@ type OverviewResponse struct {
 	OverviewResponseUserEntry
 	Users map[string]OverviewResponseUserEntry `json:"users,omitempty"`
 }
+
+type AccountReponse struct {
+	Account
+	Value      decimal.Decimal `json:"value,omitempty"`
+	StockCount uint            `json:"stock_count,omitempty"`
+}
