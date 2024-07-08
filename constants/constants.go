@@ -1,9 +1,13 @@
 package constants
 
 const (
+	LABEL_UNCATEGORISED = "Uncategorised"
+)
+
+const (
 	PERFORMANCE_NORMALISATION_DAYS = 30
-	DEFAULT_SECTOR_NAME            = ""
-	DEFAULT_REGION_NAME            = "Global"
+	DEFAULT_SECTOR_NAME            = LABEL_UNCATEGORISED
+	DEFAULT_REGION_NAME            = LABEL_UNCATEGORISED
 	TOKEN_LENGTH                   = 64
 	PERFORMANCE_DECIMAL_DIGITS     = 2
 )
