@@ -37,6 +37,16 @@ func GetHeldStocks(user models.User, db *gorm.DB) []models.UserStock {
 	return GetUserStocks(user, db, []uint{}, tristate.True())
 }
 
+func GetUserSnapshots(user models.User, db *gorm.DB, preload ...string) []models.StockSnapshot {
+	var snapshots []models.StockSnapshot
+	qry := db.Order("date").Where("user_id = ?", user.ID)
+	for _, join := range preload {
+		qry = qry.Preload(join)
+	}
+	qry.Find(&snapshots)
+	return snapshots
+}
+
 func GetAllSnapshots(user models.User, db *gorm.DB, preload ...string) []models.StockSnapshot {
 	var snapshots []models.StockSnapshot
 	qry := db.Order("date")
@@ -52,18 +62,16 @@ func GetAllSnapshots(user models.User, db *gorm.DB, preload ...string) []models.
 }
 
 func GetLatestSnapshots(userStocks []models.UserStock, db *gorm.DB) []*models.StockSnapshot {
-	uid_stockids := util.Map(userStocks, func(stock models.UserStock) []uint {
-		return []uint{stock.UserID, stock.StockID}
-	})
 
 	// PERF: Is there a way to combine this into a single query?
-	snapshots := make([]*models.StockSnapshot, len(uid_stockids))
-	for i, pair := range uid_stockids {
-		uid, sid := pair[0], pair[1]
+	snapshots := make([]*models.StockSnapshot, len(userStocks))
+	for i, userStock := range userStocks {
 		var snapshot models.StockSnapshot
 
 		result := db.Model(models.StockSnapshot{}).Joins("Stock").
-			Where(map[string]interface{}{"user_id": uid, "stock_id": sid}). // cannot use struct query due to zero values
+			Where("user_id = ? AND stock_id = ? AND account_id = ?",
+				userStock.UserID, userStock.StockID, userStock.AccountID,
+			).
 			Order("date DESC").
 			First(&snapshot)
 		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
@@ -115,12 +123,12 @@ func GetGlobalStockByNameOrCode(db *gorm.DB, name string, code string, providerI
 	return obj, result.Error
 }
 
-func GetUserStock(db *gorm.DB, uid uint, stockID uint) (models.UserStock, error) {
+func GetUserStock(db *gorm.DB, uid uint, stockID uint, accountID uint) (models.UserStock, error) {
 	var obj models.UserStock
 
 	result := db.Model(models.UserStock{}).
 		Joins("INNER JOIN stocks on stocks.id = user_stocks.stock_id").
-		Where("stock_id = ? AND user_id = ?", stockID, uid).
+		Where("stock_id = ? AND user_id = ? AND account_id = ?", stockID, uid, accountID).
 		First(&obj)
 	return obj, result.Error
 }
@@ -214,4 +222,27 @@ func GetSnapshot(db *gorm.DB, id uint) (models.StockSnapshot, error) {
 	var obj models.StockSnapshot
 	result := db.Model(models.StockSnapshot{}).Where("id = ?", id).First(&obj)
 	return obj, result.Error
+}
+
+func GetVisibleAccounts(db *gorm.DB, user models.User) ([]models.Account, error) {
+	var accounts []models.Account
+	qry := db.Model(&models.Account{})
+	if !user.IsAdmin {
+		uids := auth.GetAllowedUsers(user, true, false)
+		qry = qry.Where("user_id IN ?", uids)
+	}
+	res := qry.Find(&accounts)
+	return accounts, res.Error
+}
+func GetAccount(db *gorm.DB, id uint) (models.Account, error) {
+	var account models.Account
+	res := db.Model(&models.Account{}).Where("id = ?", id).First(&account)
+	return account, res.Error
+}
+func GetStocksForAccount(db *gorm.DB, accountID uint) ([]models.UserStock, error) {
+	var stocks []models.UserStock
+	res := db.Model(&models.UserStock{}).
+		Where("account_id = ? AND currently_held = true", accountID).
+		Find(&stocks)
+	return stocks, res.Error
 }

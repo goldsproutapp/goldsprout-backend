@@ -16,6 +16,7 @@ func RegisterAllRoutes(router *gin.RouterGroup, db *gorm.DB) {
 	RegisterPerformanceRoutes(router)
 	RegisterOverviewRoutes(router)
 	RegisterSplitRoutes(router)
+	RegisterAccountRoutes(router)
 
 	RegisterUserRoutes(router)
 	RegisterMiscRoutes(router)

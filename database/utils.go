@@ -7,5 +7,5 @@ import (
 )
 
 func Exists(db *gorm.DB) bool {
-    return !errors.Is(db.Error, gorm.ErrRecordNotFound)
+	return !errors.Is(db.Error, gorm.ErrRecordNotFound)
 }

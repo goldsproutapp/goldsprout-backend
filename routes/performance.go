@@ -75,14 +75,14 @@ func StockPerformance(ctx *gin.Context) {
 func PortfolioPerformance(ctx *gin.Context) {
 	user := middleware.GetUser(ctx)
 	db := middleware.GetDB(ctx)
-	snapshots := database.GetAllSnapshots(user, db)
+	snapshots := database.GetUserSnapshots(user, db)
 	perf := map[time.Time][]decimal.Decimal{}
 	value := map[time.Time][]decimal.Decimal{}
 	for _, snapshot := range snapshots {
 		if util.ContainsKey(perf, snapshot.Date) {
-			perf[snapshot.Date] = append(perf[snapshot.Date], snapshot.NormalisedPerformance)
+			perf[snapshot.Date] = append(perf[snapshot.Date], snapshot.NormalisedPerformance.Mul(snapshot.Value))
 		} else {
-			perf[snapshot.Date] = []decimal.Decimal{snapshot.NormalisedPerformance}
+			perf[snapshot.Date] = []decimal.Decimal{snapshot.NormalisedPerformance.Mul(snapshot.Value)}
 		}
 		if util.ContainsKey(value, snapshot.Date) {
 			value[snapshot.Date] = append(value[snapshot.Date], snapshot.Value)
@@ -90,13 +90,13 @@ func PortfolioPerformance(ctx *gin.Context) {
 			value[snapshot.Date] = []decimal.Decimal{snapshot.Value}
 		}
 	}
-	perfOut := map[time.Time]decimal.Decimal{}
-	for time, list := range perf {
-		perfOut[time] = decimal.Avg(list[0], list[1:]...).Truncate(2)
-	}
 	valueOut := map[time.Time]decimal.Decimal{}
 	for time, list := range value {
 		valueOut[time] = decimal.Sum(list[0], list[1:]...).Truncate(2)
+	}
+	perfOut := map[time.Time]decimal.Decimal{}
+	for time, list := range perf {
+		perfOut[time] = decimal.Sum(list[0], list[1:]...).Div(valueOut[time]).Truncate(2)
 	}
 	ctx.JSON(http.StatusOK, gin.H{"performance": perfOut, "value": valueOut})
 }

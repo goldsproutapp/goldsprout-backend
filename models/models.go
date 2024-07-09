@@ -13,6 +13,15 @@ type Provider struct {
 	AnnualFee float32 `json:"annual_fee,omitempty"`
 }
 
+type Account struct {
+	ID         uint     `json:"id,omitempty"`
+	Name       string   `json:"name,omitempty"`
+	Provider   Provider `json:"-"`
+	ProviderID uint     `json:"provider_id,omitempty"`
+	User       User     `json:"-"`
+	UserID     uint     `json:"user_id,omitempty"`
+}
+
 type Stock struct {
 	ID               uint     `json:"id,omitempty"`
 	Name             string   `json:"name,omitempty"`
@@ -27,28 +36,32 @@ type Stock struct {
 }
 
 type UserStock struct {
-	ID            uint   `json:"id"`
-	UserID        uint   `json:"user_id"`
-	Stock         Stock  `json:"stock"`
-	StockID       uint   `json:"stock_id"`
-	CurrentlyHeld bool   `json:"currently_held"`
-	Notes         string `json:"notes"`
+	ID            uint    `json:"id,omitempty"`
+	UserID        uint    `json:"user_id,omitempty"`
+	Stock         Stock   `json:"stock,omitempty"`
+	StockID       uint    `json:"stock_id,omitempty"`
+	Account       Account `json:"account,omitempty"`
+	AccountID     uint    `json:"account_id,omitempty"`
+	CurrentlyHeld bool    `json:"currently_held,omitempty"`
+	Notes         string  `json:"notes,omitempty"`
 }
 
 type StockSnapshot struct {
-	ID                    uint            `json:"id"`
-	User                  User            `json:"-"`
-	UserID                uint            `json:"user_id"`
-	Date                  time.Time       `json:"date"`
-	Stock                 Stock           `json:"-"`
-	StockID               uint            `json:"stock_id"`
-	Units                 decimal.Decimal `json:"units"`
-	Price                 decimal.Decimal `json:"price"`
-	Cost                  decimal.Decimal `json:"cost"`
-	Value                 decimal.Decimal `json:"value"`
-	ChangeToDate          decimal.Decimal `json:"changeToDate"`
-	ChangeSinceLast       decimal.Decimal `json:"changeSinceLast"`       // absolute change in value
-	NormalisedPerformance decimal.Decimal `json:"normalisedPerformance"` // relative change in price per unit (normalised for 30 days)
+	ID                    uint            `json:"id,omitempty"`
+	User                  User            `json:"user,omitempty"`
+	UserID                uint            `json:"user_id,omitempty"`
+	Account               Account         `json:"account,omitempty"`
+	AccountID             uint            `json:"account_id,omitempty"`
+	Date                  time.Time       `json:"date,omitempty"`
+	Stock                 Stock           `json:"stock,omitempty"`
+	StockID               uint            `json:"stock_id,omitempty"`
+	Units                 decimal.Decimal `json:"units,omitempty"`
+	Price                 decimal.Decimal `json:"price,omitempty"`
+	Cost                  decimal.Decimal `json:"cost,omitempty"`
+	Value                 decimal.Decimal `json:"value,omitempty"`
+	ChangeToDate          decimal.Decimal `json:"change_to_date,omitempty"`
+	ChangeSinceLast       decimal.Decimal `json:"change_since_last,omitempty"`      // absolute change in value
+	NormalisedPerformance decimal.Decimal `json:"normalised_performance,omitempty"` // relative change in price per unit (normalised for 30 days)
 }
 
 type RegularTransaction struct {

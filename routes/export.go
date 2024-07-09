@@ -1,9 +1,11 @@
 package routes
 
 import (
+	"strconv"
 	"strings"
 
 	"github.com/gin-gonic/gin"
+	"github.com/patrickjonesuk/investment-tracker-backend/constants"
 	"github.com/patrickjonesuk/investment-tracker-backend/database"
 	"github.com/patrickjonesuk/investment-tracker-backend/middleware"
 	"github.com/patrickjonesuk/investment-tracker-backend/models"
@@ -12,12 +14,14 @@ import (
 )
 
 var headings = []string{
+	"date",
 	"user",
 	"provider",
 	"stock_code",
 	"stock_name",
 	"region",
 	"sector",
+	"annual_fee",
 	"units",
 	"price",
 	"cost",
@@ -28,12 +32,14 @@ var headings = []string{
 
 func FormatCSV(snapshot models.StockSnapshot) string {
 	fields := []string{
+		snapshot.Date.Format(constants.ISO8601),
 		snapshot.User.Name(),
 		snapshot.Stock.Provider.Name,
 		snapshot.Stock.StockCode,
 		snapshot.Stock.Name,
 		snapshot.Stock.Region,
 		snapshot.Stock.Sector,
+		strconv.FormatFloat(float64(snapshot.Stock.AnnualFee), 'f', 2, 64),
 		snapshot.Units.String(),
 		snapshot.Price.String(),
 		snapshot.Cost.String(),
@@ -49,13 +55,13 @@ func ExportToCSV(ctx *gin.Context) {
 	db := middleware.GetDB(ctx)
 	snapshots := database.GetAllSnapshots(user, db, clause.Associations, "Stock.Provider")
 	outputArr := make([]string, len(snapshots)+1)
-    outputArr[0] = strings.Join(headings, ",")
+	outputArr[0] = strings.Join(headings, ",")
 	for i, snapshot := range snapshots {
 		str := FormatCSV(snapshot)
 		outputArr[i+1] = str
 	}
-    output := strings.Join(outputArr, "\n")
-    request.FileOK(ctx, "export.csv", output)
+	output := strings.Join(outputArr, "\n")
+	request.FileOK(ctx, "export.csv", output)
 }
 
 func RegisterExportRoutes(router *gin.RouterGroup) {

@@ -54,6 +54,7 @@ func InitDB() *gorm.DB {
 	db.AutoMigrate(
 		&models.User{},
 		&models.Provider{},
+		&models.Account{},
 		&models.Stock{},
 		&models.UserStock{},
 		&models.StockSnapshot{},

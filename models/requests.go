@@ -1,7 +1,6 @@
 package models
 
 type StockSnapshotCreationPayload struct {
-	ProviderID     uint   `binding:"required" json:"provider_id"`
 	StockName      string `binding:"required" json:"stock_name"`
 	StockCode      string `binding:"required" json:"stock_code"`
 	Units          string `binding:"required" json:"units"`
@@ -16,7 +15,7 @@ type StockSnapshotCreationPayload struct {
 
 type StockSnapshotCreationRequest struct {
 	Entries          []StockSnapshotCreationPayload `binding:"required" json:"entries"`
-	UserID           uint                           `binding:"required" json:"user_id"`
+	AccountID        uint                           `binding:"required" json:"account_id"`
 	Date             int64                          `binding:"required" json:"date"`
 	DeleteSoldStocks bool                           `json:"delete_sold_stocks"`
 }
@@ -78,4 +77,10 @@ type MassDeleteRequest struct {
 type StockMergeRequest struct {
 	MergeInto uint `binding:"required" json:"merge_into,omitempty"`
 	Stock     uint `binding:"required" json:"stock,omitempty"`
+}
+
+type CreateAccountRequest struct {
+	Name       string `binding:"required" json:"name,omitempty"`
+	UserID     uint   `binding:"required" json:"user_id,omitempty"`
+	ProviderID uint   `binding:"required" json:"provider_id,omitempty"`
 }

@@ -32,7 +32,7 @@ func GetLatestSnapshotList(ctx *gin.Context) {
 func GetAllSnapshots(ctx *gin.Context) {
 	db := middleware.GetDB(ctx)
 	user := middleware.GetUser(ctx)
-	snapshots := database.GetAllSnapshots(user, db)
+	snapshots := database.GetUserSnapshots(user, db)
 	ctx.JSON(http.StatusOK, snapshots)
 }
 
@@ -47,7 +47,12 @@ func CreateSnapshots(ctx *gin.Context) {
 		request.BadRequest(ctx)
 		return
 	}
-	if !auth.HasAccessPerm(user, body.UserID, false, true) {
+	account, err := database.GetAccount(db, body.AccountID)
+	if err != nil {
+		request.BadRequest(ctx)
+		return
+	}
+	if !auth.HasAccessPerm(user, account.UserID, false, true) {
 		request.Forbidden(ctx)
 		return
 	}
@@ -56,11 +61,11 @@ func CreateSnapshots(ctx *gin.Context) {
 	providerIDs := util.NewHashSet[uint]()
 	for i, snapshot := range body.Entries {
 		globalStock, err := database.GetGlobalStockByNameOrCode(
-			db, snapshot.StockName, snapshot.StockCode, snapshot.ProviderID)
+			db, snapshot.StockName, snapshot.StockCode, account.ProviderID)
 		if err != nil {
 			globalStock = models.Stock{
 				Name:             snapshot.StockName,
-				ProviderID:       snapshot.ProviderID,
+				ProviderID:       account.ProviderID,
 				Sector:           constants.DEFAULT_SECTOR_NAME,
 				Region:           constants.DEFAULT_REGION_NAME,
 				StockCode:        snapshot.StockCode,
@@ -74,11 +79,12 @@ func CreateSnapshots(ctx *gin.Context) {
 				return
 			}
 		}
-		userStock, err := database.GetUserStock(db, body.UserID, globalStock.ID)
+		userStock, err := database.GetUserStock(db, account.UserID, globalStock.ID, account.ID)
 		if err != nil {
 			userStock = models.UserStock{
-				UserID:        body.UserID,
+				UserID:        account.UserID,
 				StockID:       globalStock.ID,
+				AccountID:     account.ID,
 				CurrentlyHeld: true,
 				Notes:         "",
 			}
@@ -105,7 +111,7 @@ func CreateSnapshots(ctx *gin.Context) {
 		}
 		userStocks[i] = userStock
 		stockIDs.Add(userStock.StockID)
-		providerIDs.Add(snapshot.ProviderID)
+		providerIDs.Add(account.ProviderID)
 	}
 	prevSnapshots := database.GetLatestSnapshots(userStocks, db)
 
@@ -127,9 +133,10 @@ bodyLoop:
 		totalChange := util.ParseDecimal(snapshot.AbsoluteChange, &[]error{})
 
 		obj := models.StockSnapshot{
-			UserID:                body.UserID,
+			UserID:                account.UserID,
 			Date:                  date,
 			StockID:               userStock.StockID,
+			AccountID:             account.ID,
 			Units:                 util.ParseDecimal(snapshot.Units, &errList),
 			Price:                 price,
 			Cost:                  util.ParseDecimal(snapshot.Cost, &errList),
@@ -154,6 +161,7 @@ bodyLoop:
 					UserID:                other.UserID,
 					Date:                  other.Date,
 					StockID:               other.StockID,
+					AccountID:             other.AccountID,
 					Units:                 other.Units.Add(obj.Units),
 					Price:                 other.Price.Add(obj.Price),
 					Cost:                  other.Cost.Add(obj.Cost),
@@ -177,7 +185,8 @@ bodyLoop:
 		var toUpdate []models.UserStock
 		db.Model(&models.UserStock{}).
 			Joins("INNER JOIN stocks on stocks.id = user_stocks.stock_id").
-			Where("user_id = ?", body.UserID).
+			Where("user_id = ?", account.UserID).
+			Where("account_id = ?", account.ID).
 			Where("stock_id NOT IN ?", stockIDs.Items()).
 			Where("stocks.provider_id IN ?", providerIDs.Items()).
 			Find(&toUpdate)

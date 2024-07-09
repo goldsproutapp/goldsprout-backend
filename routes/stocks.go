@@ -18,6 +18,19 @@ func GetAllStocks(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, userStocks)
 }
 
+func updateHoldingMap(m *map[uint]map[uint]decimal.Decimal, a uint, b uint, v decimal.Decimal) {
+	_, ok := (*m)[a]
+	if !ok {
+		(*m)[a] = map[uint]decimal.Decimal{}
+	}
+	_, ok = (*m)[a][b]
+	if !ok {
+		(*m)[a][b] = v
+	} else {
+		(*m)[a][b] = (*m)[a][b].Add(v)
+	}
+}
+
 func GetHoldings(ctx *gin.Context) {
 	db := middleware.GetDB(ctx)
 	user := middleware.GetUser(ctx)
@@ -25,27 +38,21 @@ func GetHoldings(ctx *gin.Context) {
 	snapshots := database.GetLatestSnapshots(userStocks, db)
 	byUser := map[uint]map[uint]decimal.Decimal{}
 	byStock := map[uint]map[uint]decimal.Decimal{}
+	byAccount := map[uint]map[uint]decimal.Decimal{}
 	for i, snapshot := range snapshots {
 		if snapshot == nil {
 			continue
-		}
-		_, ok := byUser[snapshot.UserID]
-		if !ok {
-			byUser[snapshot.UserID] = map[uint]decimal.Decimal{}
-		}
-		_, ok = byStock[snapshot.StockID]
-		if !ok {
-			byStock[snapshot.StockID] = map[uint]decimal.Decimal{}
 		}
 		v := decimal.NewFromInt(0)
 		if userStocks[i].CurrentlyHeld {
 			v = snapshot.Value
 		}
-		byUser[snapshot.UserID][snapshot.StockID] = v
-		byStock[snapshot.StockID][snapshot.UserID] = v
+		updateHoldingMap(&byUser, snapshot.UserID, snapshot.StockID, v)
+		updateHoldingMap(&byStock, snapshot.StockID, snapshot.UserID, v)
+		updateHoldingMap(&byAccount, snapshot.AccountID, snapshot.StockID, v)
 	}
 	request.OK(ctx, gin.H{
-		"by_user": byUser, "by_stock": byStock,
+		"by_user": byUser, "by_stock": byStock, "by_account": byAccount,
 	})
 
 }
