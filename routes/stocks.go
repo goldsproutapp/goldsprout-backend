@@ -38,20 +38,21 @@ func GetHoldings(ctx *gin.Context) {
 	snapshots := database.GetLatestSnapshots(userStocks, db)
 	byUser := map[uint]map[uint]decimal.Decimal{}
 	byStock := map[uint]map[uint]decimal.Decimal{}
+	byAccount := map[uint]map[uint]decimal.Decimal{}
 	for i, snapshot := range snapshots {
 		if snapshot == nil {
 			continue
 		}
-
 		v := decimal.NewFromInt(0)
 		if userStocks[i].CurrentlyHeld {
 			v = snapshot.Value
 		}
 		updateHoldingMap(&byUser, snapshot.UserID, snapshot.StockID, v)
 		updateHoldingMap(&byStock, snapshot.StockID, snapshot.UserID, v)
+		updateHoldingMap(&byAccount, snapshot.AccountID, snapshot.StockID, v)
 	}
 	request.OK(ctx, gin.H{
-		"by_user": byUser, "by_stock": byStock,
+		"by_user": byUser, "by_stock": byStock, "by_account": byAccount,
 	})
 
 }
