@@ -37,6 +37,16 @@ func GetHeldStocks(user models.User, db *gorm.DB) []models.UserStock {
 	return GetUserStocks(user, db, []uint{}, tristate.True())
 }
 
+func GetUserSnapshots(user models.User, db *gorm.DB, preload ...string) []models.StockSnapshot {
+	var snapshots []models.StockSnapshot
+	qry := db.Order("date").Where("user_id = ?", user.ID)
+	for _, join := range preload {
+		qry = qry.Preload(join)
+	}
+	qry.Find(&snapshots)
+	return snapshots
+}
+
 func GetAllSnapshots(user models.User, db *gorm.DB, preload ...string) []models.StockSnapshot {
 	var snapshots []models.StockSnapshot
 	qry := db.Order("date")

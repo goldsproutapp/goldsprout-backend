@@ -32,7 +32,7 @@ func GetLatestSnapshotList(ctx *gin.Context) {
 func GetAllSnapshots(ctx *gin.Context) {
 	db := middleware.GetDB(ctx)
 	user := middleware.GetUser(ctx)
-	snapshots := database.GetAllSnapshots(user, db)
+	snapshots := database.GetUserSnapshots(user, db)
 	ctx.JSON(http.StatusOK, snapshots)
 }
 
