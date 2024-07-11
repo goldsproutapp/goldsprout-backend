@@ -2,6 +2,7 @@ package routes
 
 import (
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -98,6 +99,12 @@ func CreateSnapshots(ctx *gin.Context) {
 		if database.CanModifyStock(db, user, globalStock.ID) {
 			globalStock.Region = util.UpdateIfSet(globalStock.Region, snapshot.Region)
 			globalStock.Sector = util.UpdateIfSet(globalStock.Sector, snapshot.Sector)
+			if snapshot.AnnualFee != "" {
+				fee, err := strconv.ParseFloat(snapshot.AnnualFee, 32)
+				if err == nil {
+					globalStock.AnnualFee = float32(fee)
+				}
+			}
 			globalStock.Name = snapshot.StockName
 			if snapshot.StockCode != "" {
 				globalStock.StockCode = snapshot.StockCode

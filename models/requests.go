@@ -9,8 +9,9 @@ type StockSnapshotCreationPayload struct {
 	Value          string `binding:"required" json:"value"`
 	AbsoluteChange string `binding:"required" json:"absolute_change"`
 
-	Sector string `json:"sector"`
-	Region string `json:"region"`
+	Sector    string `json:"sector"`
+	Region    string `json:"region"`
+	AnnualFee string `json:"annual_fee"`
 }
 
 type StockSnapshotCreationRequest struct {
