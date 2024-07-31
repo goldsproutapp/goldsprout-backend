@@ -24,3 +24,15 @@ type AccountReponse struct {
 	Value      decimal.Decimal `json:"value,omitempty"`
 	StockCount uint            `json:"stock_count,omitempty"`
 }
+
+type HoldingInfo struct {
+	Value decimal.Decimal `json:"value,omitempty"`
+	Units decimal.Decimal `json:"units,omitempty"`
+}
+
+func (i HoldingInfo) Merge(other HoldingInfo) HoldingInfo {
+	return HoldingInfo{
+		Value: i.Value.Add(other.Value),
+		Units: i.Units.Add(other.Units),
+	}
+}

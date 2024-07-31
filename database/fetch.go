@@ -47,6 +47,16 @@ func GetUserSnapshots(user models.User, db *gorm.DB, preload ...string) []models
 	return snapshots
 }
 
+func GetAccountSnapshots(accountID uint, db *gorm.DB, preload ...string) []models.StockSnapshot {
+	var snapshots []models.StockSnapshot
+	qry := db.Order("date").Where("account_id = ?", accountID)
+	for _, join := range preload {
+		qry = qry.Preload(join)
+	}
+	qry.Find(&snapshots)
+	return snapshots
+}
+
 func GetAllSnapshots(user models.User, db *gorm.DB, preload ...string) []models.StockSnapshot {
 	var snapshots []models.StockSnapshot
 	qry := db.Order("date")

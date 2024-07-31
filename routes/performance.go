@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/patrickjonesuk/investment-tracker-backend/auth"
 	"github.com/patrickjonesuk/investment-tracker-backend/calculations/performance"
 	"github.com/patrickjonesuk/investment-tracker-backend/database"
 	"github.com/patrickjonesuk/investment-tracker-backend/middleware"
@@ -70,39 +71,47 @@ func StockPerformance(ctx *gin.Context) {
 			perf[snapshot.Date] = snapshot.NormalisedPerformance
 		}
 	}
-	ctx.JSON(http.StatusOK, gin.H{"value": value, "performance": perf})
+	request.OK(ctx, gin.H{"value": value, "performance": perf})
 }
+
 func PortfolioPerformance(ctx *gin.Context) {
 	user := middleware.GetUser(ctx)
 	db := middleware.GetDB(ctx)
 	snapshots := database.GetUserSnapshots(user, db)
-	perf := map[time.Time][]decimal.Decimal{}
-	value := map[time.Time][]decimal.Decimal{}
-	for _, snapshot := range snapshots {
-		if util.ContainsKey(perf, snapshot.Date) {
-			perf[snapshot.Date] = append(perf[snapshot.Date], snapshot.NormalisedPerformance.Mul(snapshot.Value))
-		} else {
-			perf[snapshot.Date] = []decimal.Decimal{snapshot.NormalisedPerformance.Mul(snapshot.Value)}
-		}
-		if util.ContainsKey(value, snapshot.Date) {
-			value[snapshot.Date] = append(value[snapshot.Date], snapshot.Value)
-		} else {
-			value[snapshot.Date] = []decimal.Decimal{snapshot.Value}
-		}
+	info := performance.GeneratePerformanceGraphInfo(snapshots)
+	request.OK(ctx, info)
+}
+
+func AccountPerformance(ctx *gin.Context) {
+	db := middleware.GetDB(ctx)
+	idstr, exists := ctx.GetQuery("id")
+	if !exists {
+		request.BadRequest(ctx)
+		return
 	}
-	valueOut := map[time.Time]decimal.Decimal{}
-	for time, list := range value {
-		valueOut[time] = decimal.Sum(list[0], list[1:]...).Truncate(2)
+	id := util.ParseIntOrDefault(idstr, -1)
+	if id == -1 {
+		request.BadRequest(ctx)
+		return
 	}
-	perfOut := map[time.Time]decimal.Decimal{}
-	for time, list := range perf {
-		perfOut[time] = decimal.Sum(list[0], list[1:]...).Div(valueOut[time]).Truncate(2)
+	account, err := database.GetAccount(db, uint(id))
+	if err != nil {
+		request.NotFound(ctx)
+		return
 	}
-	ctx.JSON(http.StatusOK, gin.H{"performance": perfOut, "value": valueOut})
+	user := middleware.GetUser(ctx)
+	if !auth.HasAccessPerm(user, account.UserID, true, false) {
+		request.Forbidden(ctx)
+		return
+	}
+	snapshots := database.GetAccountSnapshots(uint(id), db)
+	info := performance.GeneratePerformanceGraphInfo(snapshots)
+	request.OK(ctx, info)
 }
 
 func RegisterPerformanceRoutes(router *gin.RouterGroup) {
 	router.GET("/performance", middleware.Authenticate("AccessPermissions"), Perfomance)
 	router.GET("/stockperformance", middleware.Authenticate("AccessPermissions"), StockPerformance)
 	router.GET("/portfolioperformance", middleware.Authenticate(), PortfolioPerformance)
+	router.GET("/accountperformance", middleware.Authenticate("AccessPermissions"), AccountPerformance)
 }

@@ -34,3 +34,9 @@ type StockFilter struct {
 	LowerDate time.Time
 	UpperDate time.Time
 }
+
+type PerformanceGraphInfo struct {
+	Value       map[time.Time]decimal.Decimal `json:"value,omitempty"`
+	Performance map[time.Time]decimal.Decimal `json:"performance,omitempty"`
+	YearToDate  decimal.Decimal               `json:"year_to_date,omitempty"`
+}

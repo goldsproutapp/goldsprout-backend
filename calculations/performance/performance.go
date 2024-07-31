@@ -2,6 +2,7 @@ package performance
 
 import (
 	"slices"
+	"time"
 
 	"github.com/patrickjonesuk/investment-tracker-backend/models"
 	"github.com/patrickjonesuk/investment-tracker-backend/util"
@@ -73,4 +74,55 @@ func addSnapshotToMap(m *models.PerformanceMap, snapshot models.StockSnapshot, a
 		(*m)[a][b][c] = []models.StockSnapshot{}
 	}
 	(*m)[a][b][c] = append((*m)[a][b][c], snapshot)
+}
+
+func GeneratePerformanceGraphInfo(snapshots []models.StockSnapshot) models.PerformanceGraphInfo {
+	perf := map[time.Time][]decimal.Decimal{}
+	value := map[time.Time][]decimal.Decimal{}
+	yearAgoMap := map[uint]models.StockSnapshot{}
+	latestMap := map[uint]models.StockSnapshot{}
+	for _, snapshot := range snapshots {
+		if !util.ContainsKey(yearAgoMap, snapshot.StockID) &&
+			time.Now().Sub(snapshot.Date).Hours() < (24*365) {
+			yearAgoMap[snapshot.StockID] = snapshot
+		}
+		if !util.ContainsKey(latestMap, snapshot.StockID) ||
+			latestMap[snapshot.StockID].Date.Compare(snapshot.Date) == -1 {
+			latestMap[snapshot.StockID] = snapshot
+		}
+
+		if util.ContainsKey(perf, snapshot.Date) {
+			perf[snapshot.Date] = append(perf[snapshot.Date], snapshot.NormalisedPerformance.Mul(snapshot.Value))
+		} else {
+			perf[snapshot.Date] = []decimal.Decimal{snapshot.NormalisedPerformance.Mul(snapshot.Value)}
+		}
+		if util.ContainsKey(value, snapshot.Date) {
+			value[snapshot.Date] = append(value[snapshot.Date], snapshot.Value)
+		} else {
+			value[snapshot.Date] = []decimal.Decimal{snapshot.Value}
+		}
+	}
+	valueOut := map[time.Time]decimal.Decimal{}
+	for time, list := range value {
+		valueOut[time] = decimal.Sum(list[0], list[1:]...).Truncate(2)
+	}
+	perfOut := map[time.Time]decimal.Decimal{}
+	for time, list := range perf {
+		perfOut[time] = decimal.Sum(list[0], list[1:]...).Div(valueOut[time]).Truncate(2)
+	}
+	old := decimal.NewFromInt(0)
+	n := decimal.NewFromInt(0)
+	for sid, snapshot := range yearAgoMap {
+		if !util.ContainsKey(latestMap, sid) {
+			continue
+		}
+		latest := latestMap[sid]
+		old = old.Add(snapshot.Price.Mul(latest.Units))
+		n = n.Add(latest.Price.Mul(latest.Units))
+	}
+	return models.PerformanceGraphInfo{
+		Performance: perfOut,
+		Value:       valueOut,
+		YearToDate:  n.Sub(old).Div(n).Mul(decimal.NewFromInt(100)).Truncate(2),
+	}
 }
