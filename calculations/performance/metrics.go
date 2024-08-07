@@ -68,7 +68,7 @@ func HoldingsMetric(timeMap map[string][]models.StockSnapshot,
 		valueMap := map[string]decimal.Decimal{}
 		latestForPeriod := time.Unix(0, 0)
 		for _, snapshot := range snapshots {
-			key := fmt.Sprintf("%d:%d", snapshot.StockID, snapshot.UserID)
+			key := fmt.Sprintf("%d:%d", snapshot.StockID, snapshot.AccountID)
 			latest, existsLatest := dateMap[key]
 			if !existsLatest || snapshot.Date.Compare(latest) == 1 {
 				dateMap[key] = snapshot.Date
