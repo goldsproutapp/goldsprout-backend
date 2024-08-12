@@ -21,6 +21,9 @@ var propGetters = map[string]func(models.StockSnapshot) string{
 	"provider": func(snapshot models.StockSnapshot) string {
 		return snapshot.Stock.Provider.Name
 	},
+	"account": func(snapshot models.StockSnapshot) string {
+		return snapshot.Account.Name
+	},
 	"sector": func(snapshot models.StockSnapshot) string {
 		return snapshot.Stock.Sector
 	},
