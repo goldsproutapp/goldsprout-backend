@@ -21,3 +21,5 @@ const (
 const ISO8601 = "2006-01-02"
 
 var MONTHS = []string{"January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"}
+
+var DEMO_USER_AUTH_TOKEN = "Demo-User"

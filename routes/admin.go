@@ -41,7 +41,6 @@ func InviteUser(ctx *gin.Context) {
 		Trusted:      false,
 		Active:       false,
 		PasswordHash: "",
-		TokenHash:    "",
 		ClientOpts:   "",
 	}
 	db.Save(&invitedUser)

@@ -17,3 +17,7 @@ func RequiredEnv(key string) string {
 	}
 	return value
 }
+
+func DemoModeEnabled() bool {
+	return EnvOrDefault(ENVKEY_DEMO_MODE_ENABLED, "false") == "true"
+}

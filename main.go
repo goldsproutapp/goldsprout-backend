@@ -19,6 +19,9 @@ func main() {
 
 	db := database.InitDB()
 	database.CreateInitialAdminAccount(db)
+	if config.DemoModeEnabled() {
+		database.CreateDemoAccount(db)
+	}
 
 	router := gin.Default()
 	router.Use(middleware.CORSMiddleware())

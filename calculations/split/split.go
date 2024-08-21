@@ -34,7 +34,7 @@ func CalculateSplit(grouped splitMap) map[string]decimal.Decimal {
 		timeMap := map[string]time.Time{}
 		valueMap := map[string]decimal.Decimal{}
 		for _, snapshot := range snapshots {
-			key := fmt.Sprintf("%d:%d", snapshot.UserID, snapshot.StockID)
+			key := fmt.Sprintf("%d:%d", snapshot.AccountID, snapshot.StockID)
 			latest, existsLatest := timeMap[key]
 			if !existsLatest || snapshot.Date.Compare(latest) == 1 {
 				timeMap[key] = snapshot.Date

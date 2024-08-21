@@ -8,10 +8,21 @@ import (
 	"gorm.io/gorm"
 )
 
-func AuthenticateToken(db *gorm.DB, token string, preload ...string) (models.User, error) {
+func AuthenticateToken(db *gorm.DB, token string, preload ...string) (models.Session, error) {
 	tokenHash := Hash(token)
+
+	var session models.Session
+	res := db.Where(models.Session{TokenHash: tokenHash}).First(&session)
+	if errors.Is(res.Error, gorm.ErrRecordNotFound) {
+		return models.Session{}, res.Error
+	}
+	return session, nil
+}
+
+func UserForSession(db *gorm.DB, session models.Session, preload ...string) (models.User, error) {
+
 	var user models.User = models.User{}
-	qry := db.Where(models.User{TokenHash: tokenHash})
+	qry := db.Where(models.User{ID: session.UserID})
 	for _, join := range preload {
 		qry.Preload(join)
 	}
@@ -35,9 +46,13 @@ func GenerateToken() string {
 	return GenerateUID(constants.TOKEN_LENGTH)
 }
 
-func CreateToken(db *gorm.DB, user models.User) string {
+func CreateToken(db *gorm.DB, user models.User, client string) string {
 	token := GenerateToken()
-	user.TokenHash = Hash(token)
-	db.Save(&user)
+	session := models.Session{
+		UserID:    user.ID,
+		TokenHash: Hash(token),
+		Client:    client,
+	}
+	db.Save(&session)
 	return token
 }

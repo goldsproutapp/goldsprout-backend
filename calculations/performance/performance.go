@@ -120,9 +120,16 @@ func GeneratePerformanceGraphInfo(snapshots []models.StockSnapshot) models.Perfo
 		old = old.Add(snapshot.Price.Mul(latest.Units))
 		n = n.Add(latest.Price.Mul(latest.Units))
 	}
+	var ytd decimal.Decimal
+	zero := decimal.NewFromInt(0)
+	if n.Equal(zero) {
+		ytd = zero
+	} else {
+		ytd = n.Sub(old).Div(n).Mul(decimal.NewFromInt(100)).Truncate(2)
+	}
 	return models.PerformanceGraphInfo{
 		Performance: perfOut,
 		Value:       valueOut,
-		YearToDate:  n.Sub(old).Div(n).Mul(decimal.NewFromInt(100)).Truncate(2),
+		YearToDate:  ytd,
 	}
 }

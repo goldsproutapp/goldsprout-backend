@@ -36,7 +36,6 @@ func CreateInitialAdminAccount(db *gorm.DB) {
 			InvitationToken: token,
 			FirstName:       config.RequiredEnv(config.ENVKEY_ADMIN_FNAME),
 			LastName:        config.RequiredEnv(config.ENVKEY_ADMIN_LNAME),
-			TokenHash:       "", // NOTE: I'm assuming that this is safe due to hashes being fixed length
 			IsAdmin:         true,
 			Trusted:         true,
 			Active:          false,
@@ -46,6 +45,24 @@ func CreateInitialAdminAccount(db *gorm.DB) {
 	}
 }
 
+func CreateDemoAccount(db *gorm.DB) {
+	if Exists(db.Where(&models.User{IsDemoUser: true}).First(&models.User{})) {
+		return
+	}
+	user := models.User{
+		Email:           config.EnvOrDefault(config.ENVKEY_DEMO_USER_EMAIL, "demo@example.com"),
+		PasswordHash:    "",
+		InvitationToken: "",
+		FirstName:       config.EnvOrDefault(config.ENVKEY_DEMO_USER_FIRST_NAME, "Demo"),
+		LastName:        config.EnvOrDefault(config.ENVKEY_DEMO_USER_LAST_NAME, "User"),
+		IsAdmin:         true,
+		Trusted:         true,
+		Active:          true,
+		IsDemoUser:      true,
+	}
+	db.Create(&user)
+}
+
 func InitDB() *gorm.DB {
 	db, err := gorm.Open(mysql.Open(DBConnString()), &gorm.Config{})
 	if err != nil {
@@ -53,6 +70,7 @@ func InitDB() *gorm.DB {
 	}
 	db.AutoMigrate(
 		&models.User{},
+		&models.Session{},
 		&models.Provider{},
 		&models.Account{},
 		&models.Stock{},

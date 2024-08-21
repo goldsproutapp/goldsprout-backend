@@ -1,9 +1,11 @@
 package util
 
 import (
+	"fmt"
 	"strconv"
 	"strings"
 
+	"github.com/mileusna/useragent"
 	"github.com/patrickjonesuk/investment-tracker-backend/models"
 	"github.com/shopspring/decimal"
 )
@@ -87,4 +89,9 @@ func UpdateIfSet[T comparable](existing T, replacement T) T {
 		return existing
 	}
 	return replacement
+}
+
+func FormatUA(uastr string) string {
+	ua := useragent.Parse(uastr)
+	return fmt.Sprintf("%s/%sv%s", ua.Device, ua.OS, ua.OSVersion)
 }

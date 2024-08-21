@@ -256,3 +256,9 @@ func GetStocksForAccount(db *gorm.DB, accountID uint) ([]models.UserStock, error
 		Find(&stocks)
 	return stocks, res.Error
 }
+
+func GetDemoUser(db *gorm.DB) models.User {
+	var user models.User
+	db.Model(&models.User{}).Where("is_demo_user = TRUE").First(&user)
+	return user
+}
