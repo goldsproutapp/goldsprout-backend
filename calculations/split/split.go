@@ -2,6 +2,7 @@ package split
 
 import (
 	"fmt"
+	"slices"
 	"time"
 
 	"github.com/patrickjonesuk/investment-tracker-backend/calculations/performance"
@@ -12,6 +13,11 @@ import (
 )
 
 type splitMap map[string][]models.StockSnapshot
+
+func IsSplitQueryValid(q models.SplitRequestQuery) bool {
+	return slices.Contains(performance.Targets, q.Compare) &&
+		slices.Contains(performance.Targets, q.Across)
+}
 
 func CategoriseSnapshots(snapshots []models.StockSnapshot, categoryKey string,
 ) splitMap {

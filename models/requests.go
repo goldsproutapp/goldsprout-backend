@@ -45,6 +45,12 @@ type PerformanceRequestQuery struct {
 	Over    string `binding:"required" json:"over,omitempty" form:"over"`
 }
 
+type SplitRequestQuery struct {
+	StockFilterQuery
+	Compare string `binding:"required" json:"compare,omitempty" form:"compare"`
+	Across  string `binding:"required" json:"across,omitempty" form:"across"`
+}
+
 type UserInvitationRequest struct {
 	Email     string `binding:"required" json:"email,omitempty"`
 	FirstName string `binding:"required" json:"first_name,omitempty"`
