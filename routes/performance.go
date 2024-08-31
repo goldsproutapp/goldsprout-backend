@@ -36,8 +36,8 @@ func Perfomance(ctx *gin.Context) {
 	db := middleware.GetDB(ctx)
 	user := middleware.GetUser(ctx)
 	snapshots := database.FetchPerformanceData(db, user, filter)
-	groupedInfo, timePeriods := performance.ProcessSnapshots(snapshots, info)
-	result := performance.BuildSummary(groupedInfo, info, timePeriods)
+	groupedInfo, timePeriods, clickThrough := performance.ProcessSnapshots(snapshots, info)
+	result := performance.BuildSummary(groupedInfo, info, timePeriods, clickThrough)
 	ctx.JSON(http.StatusOK, result)
 }
 

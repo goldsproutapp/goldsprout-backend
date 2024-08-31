@@ -63,6 +63,18 @@ var timeListGetters = map[string]func([]string) []string{
 	},
 }
 
+var timeFocus = map[string]func(string) []string{
+	"years": func(year string) []string {
+		yearNum := util.ParseIntOrDefault(year, -1)
+		start := time.Date(yearNum, time.January, 1, 0, 0, 0, 0, time.UTC)
+		end := time.Date(yearNum, time.December, 31, 23, 0, 0, 0, time.UTC)
+		return []string{"months", strconv.FormatInt(start.Unix(), 10), strconv.FormatInt(end.Unix(), 10)}
+	},
+	"months": func(month string) []string {
+		return []string{}
+	},
+}
+
 func GetKeyFromSnapshot(snapshot models.StockSnapshot, key string) string {
 	return propGetters[key](snapshot)
 }

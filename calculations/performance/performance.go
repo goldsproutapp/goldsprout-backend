@@ -16,7 +16,7 @@ func IsPerformanceQueryValid(p models.PerformanceQueryInfo) bool {
 		slices.Contains(Times, p.TimeKey)
 }
 
-func ProcessSnapshots(snapshots []models.StockSnapshot, info models.PerformanceQueryInfo) (models.PerformanceMap, []string) {
+func ProcessSnapshots(snapshots []models.StockSnapshot, info models.PerformanceQueryInfo) (models.PerformanceMap, []string, [][]string) {
 	groups := models.PerformanceMap{}
 	timeCategories := util.NewOrderedSet[string]()
 	for _, snapshot := range snapshots {
@@ -27,13 +27,16 @@ func ProcessSnapshots(snapshots []models.StockSnapshot, info models.PerformanceQ
 
 		addSnapshotToMap(&groups, snapshot, target, against, timeCategory)
 	}
-	return groups, append(timeListGetters[info.TimeKey](timeCategories.Items()), SummaryLabels[info.MetricKey])
+	timePeriods := timeListGetters[info.TimeKey](timeCategories.Items())
+	focusTime := util.Map(timePeriods, timeFocus[info.TimeKey])
+	return groups, append(timePeriods, SummaryLabels[info.MetricKey]), focusTime
 }
 
-func BuildSummary(perfMap models.PerformanceMap, info models.PerformanceQueryInfo, timePeriods []string) models.PerformanceResponse {
+func BuildSummary(perfMap models.PerformanceMap, info models.PerformanceQueryInfo, timePeriods []string, timeFocus [][]string) models.PerformanceResponse {
 	res := models.PerformanceResponse{
 		TimePeriods: timePeriods,
 		Data:        map[string]models.CategoryPerformance{},
+		TimeFocus:   timeFocus,
 	}
 	for target, groups := range perfMap {
 		category := models.CategoryPerformance{

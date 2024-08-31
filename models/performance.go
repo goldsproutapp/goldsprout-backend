@@ -20,6 +20,7 @@ type CategoryPerformance struct {
 
 type PerformanceResponse struct {
 	TimePeriods []string                       `json:"time_periods,omitempty"`
+	TimeFocus   [][]string                     `json:"time_focus"`
 	Data        map[string]CategoryPerformance `json:"data,omitempty"`
 }
 
