@@ -224,7 +224,7 @@ func GetAllUsers(db *gorm.DB, preload ...string) []models.User {
 	for _, join := range preload {
 		qry = qry.Preload(join)
 	}
-	db.Find(&users)
+	qry.Find(&users)
 	return users
 }
 

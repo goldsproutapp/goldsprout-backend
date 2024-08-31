@@ -65,8 +65,10 @@ func SetPermissions(ctx *gin.Context) {
 		request.NotFound(ctx)
 		return
 	}
-	user.Trusted = *body.Trusted
-	db.Save(&user)
+	if user.Trusted != *body.Trusted {
+		user.Trusted = *body.Trusted
+		db.Save(&user)
+	}
 	permissionMap := map[uint]models.AccessPermission{}
 	for _, perm := range user.AccessPermissions {
 		permissionMap[perm.AccessForID] = perm
@@ -80,7 +82,7 @@ func SetPermissions(ctx *gin.Context) {
 		}
 		if !perm.Read && !perm.Write {
 			if exists {
-				toDelete = append(toDelete, models.AccessPermission{UserID: user.ID, AccessForID: perm.ForUser})
+				toDelete = append(toDelete, models.AccessPermission{ID: existing.ID})
 			} else {
 				continue
 			}
@@ -93,8 +95,12 @@ func SetPermissions(ctx *gin.Context) {
 			})
 		}
 	}
-	db.Delete(&toDelete)
-	db.Save(&updatePermissions)
+	if len(toDelete) > 0 {
+		db.Delete(&toDelete)
+	}
+	if len(updatePermissions) > 0 {
+		db.Save(&updatePermissions)
+	}
 	request.OK(ctx, user)
 }
 
