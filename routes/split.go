@@ -8,6 +8,7 @@ import (
 	"github.com/patrickjonesuk/investment-tracker-backend/middleware"
 	"github.com/patrickjonesuk/investment-tracker-backend/models"
 	"github.com/patrickjonesuk/investment-tracker-backend/request"
+	"github.com/patrickjonesuk/investment-tracker-backend/util"
 	"github.com/shopspring/decimal"
 )
 
@@ -37,11 +38,18 @@ func Split(ctx *gin.Context) {
 			out[categoryKey] = result
 		}
 	} else {
+		categories := map[string]decimal.Decimal{}
 		groups := split.CategoriseSnapshots(snapshots, query.Across)
 		for key := range groups {
 			subGroup := split.CategoriseSnapshots(groups[key], query.Compare)
 			result := split.CalculateSplit(subGroup)
+			for k := range result {
+				categories[k] = decimal.NewFromInt(0)
+			}
 			out[key] = result
+		}
+		for key, res := range out {
+			out[key] = util.UpdateMap(categories, res)
 		}
 	}
 	request.OK(ctx, out)

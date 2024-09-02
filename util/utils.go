@@ -95,3 +95,15 @@ func FormatUA(uastr string) string {
 	ua := useragent.Parse(uastr)
 	return fmt.Sprintf("%s/%sv%s", ua.Device, ua.OS, ua.OSVersion)
 }
+
+func UpdateMap[K comparable, V any](dst map[K]V, src map[K]V) map[K]V {
+	out := map[K]V{}
+	for k, v := range dst {
+		out[k] = v
+	}
+	for k, v := range src {
+		out[k] = v
+	}
+
+	return out
+}
