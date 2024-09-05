@@ -3,19 +3,20 @@ version: "3.1"
 services:
   mariadb:
     image: mariadb:latest
+    container_name: goldsprout-mariadb
     restart: always
+    hostname: mariadb
     environment:
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
       MYSQL_DATABASE: ${MYSQL_DATABASE}
       MYSQL_USER: ${MYSQL_USER}
       MYSQL_PASSWORD: ${MYSQL_PASSWORD}
-    ports:
-      - "3306:3306"
 
     volumes:
       - ./volumes/sql:/var/lib/mysql
 
   backend:
+    container_name: goldsprout-backend
     build:
       context: .
       dockerfile: Dockerfile
@@ -25,4 +26,3 @@ services:
       - mariadb
     env_file:
       - .env
-
