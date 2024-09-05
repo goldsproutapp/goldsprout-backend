@@ -3,8 +3,8 @@ package database
 import (
 	"slices"
 
-	"github.com/patrickjonesuk/investment-tracker-backend/auth"
-	"github.com/patrickjonesuk/investment-tracker-backend/models"
+	"github.com/goldsproutapp/goldsprout-backend/auth"
+	"github.com/goldsproutapp/goldsprout-backend/models"
 	"gorm.io/gorm"
 )
 

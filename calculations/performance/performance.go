@@ -4,8 +4,8 @@ import (
 	"slices"
 	"time"
 
-	"github.com/patrickjonesuk/investment-tracker-backend/models"
-	"github.com/patrickjonesuk/investment-tracker-backend/util"
+	"github.com/goldsproutapp/goldsprout-backend/models"
+	"github.com/goldsproutapp/goldsprout-backend/util"
 	"github.com/shopspring/decimal"
 )
 

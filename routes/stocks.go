@@ -4,10 +4,10 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/patrickjonesuk/investment-tracker-backend/database"
-	"github.com/patrickjonesuk/investment-tracker-backend/middleware"
-	"github.com/patrickjonesuk/investment-tracker-backend/models"
-	"github.com/patrickjonesuk/investment-tracker-backend/request"
+	"github.com/goldsproutapp/goldsprout-backend/database"
+	"github.com/goldsproutapp/goldsprout-backend/middleware"
+	"github.com/goldsproutapp/goldsprout-backend/models"
+	"github.com/goldsproutapp/goldsprout-backend/request"
 	"github.com/shopspring/decimal"
 )
 

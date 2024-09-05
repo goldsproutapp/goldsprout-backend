@@ -4,10 +4,10 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/patrickjonesuk/investment-tracker-backend/config"
-	"github.com/patrickjonesuk/investment-tracker-backend/database"
-	"github.com/patrickjonesuk/investment-tracker-backend/middleware"
-	"github.com/patrickjonesuk/investment-tracker-backend/routes"
+	"github.com/goldsproutapp/goldsprout-backend/config"
+	"github.com/goldsproutapp/goldsprout-backend/database"
+	"github.com/goldsproutapp/goldsprout-backend/middleware"
+	"github.com/goldsproutapp/goldsprout-backend/routes"
 )
 
 func UserInfo(ctx *gin.Context) {
@@ -27,7 +27,7 @@ func main() {
 	router.Use(middleware.CORSMiddleware())
 
 	router.Use(middleware.Database(db))
-	routes.RegisterAllRoutes(&router.RouterGroup, db)
+	routes.RegisterAllRoutes(router.Group("/api"), db)
 
 	router.Run(config.EnvOrDefault(config.LISTEN_INTERFACE, "0.0.0.0") + ":" + config.EnvOrDefault(config.LISTEN_PORT, "3000"))
 

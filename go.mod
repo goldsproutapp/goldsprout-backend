@@ -1,4 +1,4 @@
-module github.com/patrickjonesuk/investment-tracker-backend
+module github.com/goldsproutapp/goldsprout-backend
 
 go 1.20
 

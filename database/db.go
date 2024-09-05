@@ -4,10 +4,10 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/patrickjonesuk/investment-tracker-backend/auth"
-	"github.com/patrickjonesuk/investment-tracker-backend/config"
-	"github.com/patrickjonesuk/investment-tracker-backend/email"
-	"github.com/patrickjonesuk/investment-tracker-backend/models"
+	"github.com/goldsproutapp/goldsprout-backend/auth"
+	"github.com/goldsproutapp/goldsprout-backend/config"
+	"github.com/goldsproutapp/goldsprout-backend/email"
+	"github.com/goldsproutapp/goldsprout-backend/models"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 )

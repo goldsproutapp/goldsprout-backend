@@ -4,8 +4,8 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/patrickjonesuk/investment-tracker-backend/database"
-	"github.com/patrickjonesuk/investment-tracker-backend/middleware"
+	"github.com/goldsproutapp/goldsprout-backend/database"
+	"github.com/goldsproutapp/goldsprout-backend/middleware"
 )
 
 func GetAllRegions(ctx *gin.Context) {

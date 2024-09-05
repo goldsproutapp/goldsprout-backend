@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	"github.com/mileusna/useragent"
-	"github.com/patrickjonesuk/investment-tracker-backend/models"
+	"github.com/goldsproutapp/goldsprout-backend/models"
 	"github.com/shopspring/decimal"
 )
 

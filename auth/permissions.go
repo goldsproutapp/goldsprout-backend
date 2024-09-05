@@ -1,7 +1,7 @@
 package auth
 
 import (
-	"github.com/patrickjonesuk/investment-tracker-backend/models"
+	"github.com/goldsproutapp/goldsprout-backend/models"
 )
 
 func GetAllowedUsers(user models.User, requireRead bool, requireWrite bool) []uint {
