@@ -64,18 +64,16 @@ func HoldingsMetric(timeMap map[string][]models.StockSnapshot,
 	latestDateTotal := time.Unix(0, 0)
 	latestTimePeriod := ""
 	for timePeriod, snapshots := range timeMap {
-		dateMap := map[string]time.Time{}
-		valueMap := map[string]decimal.Decimal{}
-		latestForPeriod := time.Unix(0, 0)
+		snapshotMap := map[string]models.StockSnapshot{}
+		latestForPeriod := map[uint]time.Time{}
 		for _, snapshot := range snapshots {
 			key := fmt.Sprintf("%d:%d", snapshot.StockID, snapshot.AccountID)
-			latest, existsLatest := dateMap[key]
-			if !existsLatest || snapshot.Date.Compare(latest) == 1 {
-				dateMap[key] = snapshot.Date
-				valueMap[key] = snapshot.Value
+			latest, existsLatest := snapshotMap[key]
+			if !existsLatest || snapshot.Date.Compare(latest.Date) == 1 {
+				snapshotMap[key] = snapshot
 			}
-			if snapshot.Date.Compare(latestForPeriod) == 1 {
-				latestForPeriod = snapshot.Date
+			if !util.ContainsKey(latestForPeriod, snapshot.AccountID) || snapshot.Date.Compare(latestForPeriod[snapshot.AccountID]) == 1 {
+				latestForPeriod[snapshot.AccountID] = snapshot.Date
 			}
 			if snapshot.Date.Compare(latestDateTotal) == 1 {
 				latestDateTotal = snapshot.Date
@@ -83,9 +81,9 @@ func HoldingsMetric(timeMap map[string][]models.StockSnapshot,
 			}
 		}
 		timeTotal := decimal.NewFromInt(0)
-		for key, value := range dateMap {
-			if value.Sub(latestForPeriod).Abs().Minutes() < 60 { // If you're doing subsequent imports less than an hour apart then it's your fault that this doesn't work for you.
-				timeTotal = timeTotal.Add(valueMap[key])
+		for _, snapshot := range snapshotMap {
+			if snapshot.Date.Sub(latestForPeriod[snapshot.AccountID]).Abs().Minutes() < 60 { // If you're doing subsequent imports less than an hour apart then it's your fault that this doesn't work for you.
+				timeTotal = timeTotal.Add(snapshot.Value)
 			}
 		}
 		items[timePeriod] = timeTotal
