@@ -35,7 +35,7 @@ func UserForSession(db *gorm.DB, session models.Session, preload ...string) (mod
 
 func AuthenticateUnamePw(db *gorm.DB, uname string, password string) (models.User, error) {
 	var user models.User = models.User{}
-	result := db.Where(models.User{Email: uname}).First(&user)
+	result := db.Where(models.User{Email: uname}).Preload("AccessPermissions").First(&user)
 	if errors.Is(result.Error, gorm.ErrRecordNotFound) || !ValidatePassword(password, user.PasswordHash) {
 		return models.User{}, errors.New("Invalid username or password")
 	}
