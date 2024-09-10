@@ -33,6 +33,7 @@ type StockFilterQuery struct {
 	FilterRegions      string `json:"filter_regions,omitempty" form:"filter_regions"`
 	FilterProviders    string `json:"filter_providers,omitempty" form:"filter_providers"`
 	FilterUsers        string `json:"filter_users,omitempty" form:"filter_users"`
+	FilterAccounts     string `json:"filter_accounts,omitempty" form:"filter_accounts"`
 	FilterIgnoreBefore string `json:"filter_ignore_before,omitempty" form:"filter_ignore_before"`
 	FilterIgnoreAfter  string `json:"filter_ignore_after,omitempty" form:"filter_ignore_after"`
 }

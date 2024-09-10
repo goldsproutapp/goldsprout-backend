@@ -94,6 +94,7 @@ func BuildStockFilter(query models.StockFilterQuery) models.StockFilter {
 		Regions:   util.Split(query.FilterRegions, ","),
 		Providers: util.UintArray(query.FilterProviders),
 		Users:     util.UintArray(query.FilterUsers),
+		Accounts:  util.Split(query.FilterAccounts, ","),
 		LowerDate: ignoreBefore,
 		UpperDate: ignoreAfter,
 	}

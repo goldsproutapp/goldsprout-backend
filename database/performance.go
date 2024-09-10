@@ -36,6 +36,9 @@ func FetchPerformanceData(db *gorm.DB, user models.User, filter models.StockFilt
 	if len(filter.Regions) > 0 {
 		qry = qry.Where("Stock.region IN ?", filter.Regions)
 	}
+	if len(filter.Accounts) > 0 {
+		qry = qry.Where("Account.name IN ?", filter.Accounts)
+	}
 	if filter.LowerDate.Unix() != 0 {
 		qry = qry.Where("date > ?", filter.LowerDate)
 	}
