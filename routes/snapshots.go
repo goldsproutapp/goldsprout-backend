@@ -209,6 +209,10 @@ bodyLoop:
 func DeleteSnapshot(ctx *gin.Context) {
 	errs := []error{}
 	id := util.ParseUint(ctx.Param("id"), &errs)
+	if len(errs) > 0 {
+		request.BadRequest(ctx)
+		return
+	}
 	db := middleware.GetDB(ctx)
 	user := middleware.GetUser(ctx)
 	snapshot, err := database.GetSnapshot(db, id)

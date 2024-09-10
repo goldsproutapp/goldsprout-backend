@@ -7,6 +7,7 @@ import (
 	"github.com/goldsproutapp/goldsprout-backend/middleware"
 	"github.com/goldsproutapp/goldsprout-backend/models"
 	"github.com/goldsproutapp/goldsprout-backend/request"
+	"github.com/goldsproutapp/goldsprout-backend/util"
 	"github.com/shopspring/decimal"
 )
 
@@ -68,7 +69,32 @@ func CreateAccount(ctx *gin.Context) {
 	request.Created(ctx, account)
 }
 
+func DeleteAccount(ctx *gin.Context) {
+	errs := []error{}
+	id := util.ParseUint(ctx.Param("id"), &errs)
+	if len(errs) > 0 {
+		request.BadRequest(ctx)
+		return
+	}
+	db := middleware.GetDB(ctx)
+	user := middleware.GetUser(ctx)
+	account, err := database.GetAccount(db, id)
+	if err != nil {
+		request.NotFound(ctx)
+		return
+	}
+	if !auth.HasAccessPerm(user, account.UserID, true, true) {
+		request.Forbidden(ctx)
+		return
+	}
+	db.Where("account_id = ?", account.ID).Delete(&models.StockSnapshot{})
+	db.Where("account_id = ?", account.ID).Delete(&models.UserStock{})
+	db.Delete(&models.Account{}, account.ID)
+	request.NoContent(ctx)
+}
+
 func RegisterAccountRoutes(router *gin.RouterGroup) {
 	router.GET("/accounts", middleware.Authenticate("AccessPermissions"), GetAccounts)
 	router.POST("/accounts", middleware.Authenticate("AccessPermissions"), CreateAccount)
+	router.DELETE("/accounts/:id", middleware.Authenticate("AccessPermissions"), DeleteAccount)
 }
