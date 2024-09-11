@@ -49,10 +49,13 @@ func BuildSummary(perfMap models.PerformanceMap, info models.PerformanceQueryInf
 		}
 		totalMap := map[string][]models.StockSnapshot{}
 		for _, timePeriod := range timePeriods {
-			totalMap[timePeriod] = []models.StockSnapshot{}
+			periodSnapshots := []models.StockSnapshot{}
 			for _, timeMap := range groups {
 				snapshots := timeMap[timePeriod]
-				totalMap[timePeriod] = append(totalMap[timePeriod], snapshots...)
+				periodSnapshots = append(periodSnapshots, snapshots...)
+			}
+			if len(periodSnapshots) > 0 {
+				totalMap[timePeriod] = periodSnapshots
 			}
 		}
 		totals := metricsMap[info.MetricKey](totalMap)
