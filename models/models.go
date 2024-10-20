@@ -91,4 +91,5 @@ type AccessPermission struct {
 	AccessForID uint `json:"access_for_id,omitempty"`
 	Read        bool `json:"read,omitempty"`
 	Write       bool `json:"write,omitempty"`
+	Limited     bool `json:"limited,omitempty"`
 }

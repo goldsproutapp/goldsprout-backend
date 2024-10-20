@@ -14,11 +14,14 @@ type StockSnapshotCreationPayload struct {
 	AnnualFee string `json:"annual_fee"`
 }
 
-type StockSnapshotCreationRequest struct {
+type StockSnapshotCreationBatch struct {
 	Entries          []StockSnapshotCreationPayload `binding:"required" json:"entries"`
 	AccountID        uint                           `binding:"required" json:"account_id"`
 	Date             int64                          `binding:"required" json:"date"`
 	DeleteSoldStocks bool                           `json:"delete_sold_stocks"`
+}
+type StockSnapshotCreationRequest struct {
+	Batches []StockSnapshotCreationBatch `json:"batches,omitempty" binding:"required"`
 }
 
 type StockUpdateRequest struct {
@@ -76,6 +79,7 @@ type SetPermissionsRequestItem struct {
 	ForUser uint `binding:"required" json:"for_user,omitempty"`
 	Read    bool `binding:"required" json:"read,omitempty"`
 	Write   bool `binding:"required" json:"write,omitempty"`
+	Limited bool `binding:"required" json:"limited,omitempty"`
 }
 
 type MassDeleteRequest struct {

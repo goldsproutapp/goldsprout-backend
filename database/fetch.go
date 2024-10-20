@@ -13,7 +13,7 @@ import (
 	"gorm.io/gorm"
 )
 
-func GetUserStocks(authUser models.User, db *gorm.DB, heldBy []uint, currentlyHeld tristate.Tristate) []models.UserStock {
+func GetUserStocks(authUser models.User, db *gorm.DB, heldBy []uint, currentlyHeld tristate.Tristate, permitLimited bool) []models.UserStock {
 	var userStocks []models.UserStock
 	query := db.Model(&models.UserStock{}).Joins("Stock")
 	if len(heldBy) > 0 {
@@ -23,18 +23,18 @@ func GetUserStocks(authUser models.User, db *gorm.DB, heldBy []uint, currentlyHe
 		query.Where("currently_held = ?", currentlyHeld.GetBoolValue(false))
 	}
 	if !authUser.IsAdmin {
-		query = query.Where("user_id IN ?", auth.GetAllowedUsers(authUser, true, false))
+		query = query.Where("user_id IN ?", auth.GetAllowedUsers(authUser, true, false, permitLimited))
 	}
 	query.Find(&userStocks)
 	return userStocks
 }
 
-func GetVisibleStockList(user models.User, db *gorm.DB) []models.UserStock {
-	return GetUserStocks(user, db, []uint{}, tristate.None())
+func GetVisibleStockList(user models.User, db *gorm.DB, permitLimited bool) []models.UserStock {
+	return GetUserStocks(user, db, []uint{}, tristate.None(), permitLimited)
 }
 
-func GetHeldStocks(user models.User, db *gorm.DB) []models.UserStock {
-	return GetUserStocks(user, db, []uint{}, tristate.True())
+func GetHeldStocks(user models.User, db *gorm.DB, permitLimited bool) []models.UserStock {
+	return GetUserStocks(user, db, []uint{}, tristate.True(), permitLimited)
 }
 
 func GetUserSnapshots(user models.User, db *gorm.DB, preload ...string) []models.StockSnapshot {
@@ -57,11 +57,11 @@ func GetAccountSnapshots(accountID uint, db *gorm.DB, preload ...string) []model
 	return snapshots
 }
 
-func GetAllSnapshots(user models.User, db *gorm.DB, preload ...string) []models.StockSnapshot {
+func GetAllSnapshots(user models.User, db *gorm.DB, permitLimited bool, preload ...string) []models.StockSnapshot {
 	var snapshots []models.StockSnapshot
 	qry := db.Order("date")
 	if !user.IsAdmin {
-		allowed_uids := auth.GetAllowedUsers(user, true, false)
+		allowed_uids := auth.GetAllowedUsers(user, true, false, permitLimited)
 		qry = qry.Where("user_id IN ?", allowed_uids)
 	}
 	for _, join := range preload {
@@ -172,7 +172,7 @@ func GetSectors(db *gorm.DB) []string {
 }
 
 func GetOverview(db *gorm.DB, user models.User) models.OverviewResponse {
-	uids := auth.GetAllowedUsers(user, true, false)
+	uids := auth.GetAllowedUsers(user, true, false, false)
 	if user.IsAdmin {
 		uids = util.UserIDs(GetAllUsers(db))
 	}
@@ -234,11 +234,11 @@ func GetSnapshot(db *gorm.DB, id uint) (models.StockSnapshot, error) {
 	return obj, result.Error
 }
 
-func GetVisibleAccounts(db *gorm.DB, user models.User) ([]models.Account, error) {
+func GetVisibleAccounts(db *gorm.DB, user models.User, permitLimited bool) ([]models.Account, error) {
 	var accounts []models.Account
 	qry := db.Model(&models.Account{})
 	if !user.IsAdmin {
-		uids := auth.GetAllowedUsers(user, true, false)
+		uids := auth.GetAllowedUsers(user, true, false, permitLimited)
 		qry = qry.Where("user_id IN ?", uids)
 	}
 	res := qry.Find(&accounts)

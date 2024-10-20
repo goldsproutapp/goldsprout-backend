@@ -16,6 +16,11 @@ func IsPerformanceQueryValid(p models.PerformanceQueryInfo) bool {
 		slices.Contains(Times, p.TimeKey)
 }
 
+func SetQueryMeta(p *models.PerformanceQueryInfo) {
+	p.Meta = MetricMeta[p.MetricKey]
+	p.MetricFunction = metricsMap[p.MetricKey]
+}
+
 func ProcessSnapshots(snapshots []models.StockSnapshot, info models.PerformanceQueryInfo) (models.PerformanceMap, []string, [][]string) {
 	groups := models.PerformanceMap{}
 	timeCategories := util.NewOrderedSet[string]()
@@ -29,7 +34,7 @@ func ProcessSnapshots(snapshots []models.StockSnapshot, info models.PerformanceQ
 	}
 	timePeriods := timeListGetters[info.TimeKey](timeCategories.Items())
 	focusTime := util.Map(timePeriods, timeFocus[info.TimeKey])
-	return groups, append(timePeriods, SummaryLabels[info.MetricKey]), focusTime
+	return groups, append(timePeriods, info.Meta.SummaryLabel), focusTime
 }
 
 func BuildSummary(perfMap models.PerformanceMap, info models.PerformanceQueryInfo, timePeriods []string, timeFocus [][]string) models.PerformanceResponse {
@@ -44,7 +49,7 @@ func BuildSummary(perfMap models.PerformanceMap, info models.PerformanceQueryInf
 			Items:  map[string]map[string]decimal.Decimal{},
 		}
 		for group, timeMap := range groups {
-			items := metricsMap[info.MetricKey](timeMap)
+			items := info.MetricFunction(timeMap)
 			category.Items[group] = items
 		}
 		totalMap := map[string][]models.StockSnapshot{}
@@ -58,7 +63,7 @@ func BuildSummary(perfMap models.PerformanceMap, info models.PerformanceQueryInf
 				totalMap[timePeriod] = periodSnapshots
 			}
 		}
-		totals := metricsMap[info.MetricKey](totalMap)
+		totals := info.MetricFunction(totalMap)
 		category.Totals = totals
 		res.Data[target] = category
 	}

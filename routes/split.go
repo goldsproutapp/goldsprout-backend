@@ -27,7 +27,7 @@ func Split(ctx *gin.Context) {
 	}
 	filter := performance.BuildStockFilter(query.StockFilterQuery)
 
-	snapshots := database.FetchPerformanceData(db, user, filter)
+	snapshots := database.FetchPerformanceData(db, user, filter, true)
 	out := map[string]map[string]decimal.Decimal{}
 
 	if query.Compare == "all" {

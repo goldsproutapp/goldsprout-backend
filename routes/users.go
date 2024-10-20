@@ -15,14 +15,14 @@ import (
 func GetUserInfo(ctx *gin.Context) {
 	db := middleware.GetDB(ctx)
 	user := middleware.GetUser(ctx)
-	uids := auth.GetAllowedUsers(user, true, false)
-	var users []models.User
+	uids := auth.GetAllowedUsers(user, true, false, true)
 	if user.IsAdmin {
-		users = database.GetAllUsers(db, "AccessPermissions")
+		request.OK(ctx, database.GetAllUsers(db, "AccessPermissions"))
 	} else {
-		db.Model(&models.User{}).Preload("AccessPermissions").Where("id IN ?", uids).Find(&users)
+		var users []models.User
+		db.Model(&models.User{}).Where("id IN ?", uids).Find(&users)
+		ctx.JSON(http.StatusOK, util.Map(users, models.User.PublicInfo))
 	}
-	ctx.JSON(http.StatusOK, users)
 }
 
 func GetUserVisibility(ctx *gin.Context) {

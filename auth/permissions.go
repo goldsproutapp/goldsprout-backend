@@ -4,18 +4,18 @@ import (
 	"github.com/goldsproutapp/goldsprout-backend/models"
 )
 
-func GetAllowedUsers(user models.User, requireRead bool, requireWrite bool) []uint {
+func GetAllowedUsers(user models.User, requireRead bool, requireWrite bool, permitLimited bool) []uint {
 	var userIds []uint
 	for _, perm := range user.AccessPermissions {
 		uid := perm.AccessForID
-		if (perm.Read || !requireRead) && (perm.Write || !requireWrite) {
+		if (perm.Read || !requireRead || (permitLimited && perm.Limited)) && (perm.Write || !requireWrite) {
 			userIds = append(userIds, uid)
 		}
 	}
 	return append(userIds, user.ID) // user always has permissions for themselves.
 }
 
-func HasAccessPerm(user models.User, forUser uint, requireRead bool, requireWrite bool) bool {
+func HasAccessPerm(user models.User, forUser uint, requireRead bool, requireWrite bool, permitLimited bool) bool {
 	if user.IsAdmin || user.ID == forUser {
 		return true
 	}
@@ -23,7 +23,7 @@ func HasAccessPerm(user models.User, forUser uint, requireRead bool, requireWrit
 		if perm.AccessForID != forUser {
 			continue
 		}
-		return (perm.Read || !requireRead) && (perm.Write || !requireWrite)
+		return (perm.Read || !requireRead || (permitLimited && perm.Limited)) && (perm.Write || !requireWrite)
 	}
 	return false
 }

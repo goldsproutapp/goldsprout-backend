@@ -14,7 +14,7 @@ import (
 func GetAllStocks(ctx *gin.Context) {
 	db := middleware.GetDB(ctx)
 	user := middleware.GetUser(ctx)
-	userStocks := database.GetVisibleStockList(user, db)
+	userStocks := database.GetVisibleStockList(user, db, true)
 	ctx.JSON(http.StatusOK, userStocks)
 }
 
@@ -34,7 +34,7 @@ func updateHoldingMap(m *map[uint]map[uint]models.HoldingInfo, a uint, b uint, i
 func GetHoldings(ctx *gin.Context) {
 	db := middleware.GetDB(ctx)
 	user := middleware.GetUser(ctx)
-	userStocks := database.GetVisibleStockList(user, db)
+	userStocks := database.GetVisibleStockList(user, db, false)
 	snapshots := database.GetLatestSnapshots(userStocks, db)
 	byUser := map[uint]map[uint]models.HoldingInfo{}
 	byStock := map[uint]map[uint]models.HoldingInfo{}

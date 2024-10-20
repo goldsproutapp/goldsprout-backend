@@ -33,9 +33,10 @@ func Perfomance(ctx *gin.Context) {
 		request.BadRequest(ctx)
 		return
 	}
+    performance.SetQueryMeta(&info)
 	db := middleware.GetDB(ctx)
 	user := middleware.GetUser(ctx)
-	snapshots := database.FetchPerformanceData(db, user, filter)
+	snapshots := database.FetchPerformanceData(db, user, filter, info.Meta.PermitLimited)
 	groupedInfo, timePeriods, clickThrough := performance.ProcessSnapshots(snapshots, info)
 	result := performance.BuildSummary(groupedInfo, info, timePeriods, clickThrough)
 	ctx.JSON(http.StatusOK, result)
@@ -100,7 +101,7 @@ func AccountPerformance(ctx *gin.Context) {
 		return
 	}
 	user := middleware.GetUser(ctx)
-	if !auth.HasAccessPerm(user, account.UserID, true, false) {
+	if !auth.HasAccessPerm(user, account.UserID, true, false, false) {
 		request.Forbidden(ctx)
 		return
 	}

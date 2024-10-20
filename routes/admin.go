@@ -77,10 +77,10 @@ func SetPermissions(ctx *gin.Context) {
 	toDelete := make([]models.AccessPermission, 0)
 	for _, perm := range body.Permissions {
 		existing, exists := permissionMap[perm.ForUser]
-		if exists && existing.Read == perm.Read && existing.Write == perm.Write {
+		if exists && existing.Read == perm.Read && existing.Write == perm.Write && existing.Limited == perm.Limited {
 			continue
 		}
-		if !perm.Read && !perm.Write {
+		if !perm.Read && !perm.Write && !perm.Limited {
 			if exists {
 				toDelete = append(toDelete, models.AccessPermission{ID: existing.ID})
 			} else {
@@ -92,6 +92,7 @@ func SetPermissions(ctx *gin.Context) {
 				AccessForID: perm.ForUser,
 				Read:        perm.Read,
 				Write:       perm.Write,
+				Limited:     perm.Limited,
 			})
 		}
 	}

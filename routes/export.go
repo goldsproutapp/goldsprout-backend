@@ -55,7 +55,7 @@ func FormatCSV(snapshot models.StockSnapshot) string {
 func ExportToCSV(ctx *gin.Context) {
 	user := middleware.GetUser(ctx)
 	db := middleware.GetDB(ctx)
-	snapshots := database.GetAllSnapshots(user, db, clause.Associations, "Stock.Provider")
+	snapshots := database.GetAllSnapshots(user, db, false, clause.Associations, "Stock.Provider")
 	outputArr := make([]string, len(snapshots)+1)
 	outputArr[0] = strings.Join(headings, ",")
 	for i, snapshot := range snapshots {

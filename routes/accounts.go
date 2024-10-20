@@ -14,7 +14,7 @@ import (
 func GetAccounts(ctx *gin.Context) {
 	db := middleware.GetDB(ctx)
 	user := middleware.GetUser(ctx)
-	accounts, err := database.GetVisibleAccounts(db, user)
+	accounts, err := database.GetVisibleAccounts(db, user, false)
 	if err != nil {
 		request.BadRequest(ctx)
 		return
@@ -52,7 +52,7 @@ func CreateAccount(ctx *gin.Context) {
 	}
 	db := middleware.GetDB(ctx)
 	user := middleware.GetUser(ctx)
-	if !auth.HasAccessPerm(user, body.UserID, false, true) {
+	if !auth.HasAccessPerm(user, body.UserID, false, true, false) {
 		request.Forbidden(ctx)
 		return
 	}
@@ -83,7 +83,7 @@ func DeleteAccount(ctx *gin.Context) {
 		request.NotFound(ctx)
 		return
 	}
-	if !auth.HasAccessPerm(user, account.UserID, true, true) {
+	if !auth.HasAccessPerm(user, account.UserID, true, true, false) {
 		request.Forbidden(ctx)
 		return
 	}

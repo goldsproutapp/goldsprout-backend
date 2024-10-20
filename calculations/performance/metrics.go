@@ -1,7 +1,6 @@
 package performance
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/goldsproutapp/goldsprout-backend/constants"
@@ -10,6 +9,7 @@ import (
 	"github.com/shopspring/decimal"
 )
 
+// Average monthly performance across all holdings in each period.
 func PerformanceMetric(timeMap map[string][]models.StockSnapshot,
 ) map[string]decimal.Decimal {
 	total := decimal.NewFromInt(0)
@@ -28,10 +28,11 @@ func PerformanceMetric(timeMap map[string][]models.StockSnapshot,
 		items[timePeriod] = avg
 		total = total.Add(avg)
 	}
-	items[SummaryLabels["performance"]] = total.Div(decimal.NewFromInt(int64(len(timeMap)))).Truncate(constants.PERFORMANCE_DECIMAL_DIGITS)
+	items[MetricMeta["performance"].SummaryLabel] = total.Div(decimal.NewFromInt(int64(len(timeMap)))).Truncate(constants.PERFORMANCE_DECIMAL_DIGITS)
 	return items
 }
 
+// Average monthly performance across all holdings in each period, weighted by value.
 func WeightedPerformanceMetric(timeMap map[string][]models.StockSnapshot,
 ) map[string]decimal.Decimal {
 	items := map[string]decimal.Decimal{}
@@ -53,10 +54,11 @@ func WeightedPerformanceMetric(timeMap map[string][]models.StockSnapshot,
 		totalWeights = totalWeights.Add(weights)
 
 	}
-	items[SummaryLabels["weighted_performance"]] = total.Div(totalWeights).Truncate(constants.PERFORMANCE_DECIMAL_DIGITS)
+	items[MetricMeta["weighted_performance"].SummaryLabel] = total.Div(totalWeights).Truncate(constants.PERFORMANCE_DECIMAL_DIGITS)
 	return items
 }
 
+// Total value of all holdings at the end of each time period
 func HoldingsMetric(timeMap map[string][]models.StockSnapshot,
 ) map[string]decimal.Decimal {
 
@@ -67,7 +69,7 @@ func HoldingsMetric(timeMap map[string][]models.StockSnapshot,
 		snapshotMap := map[string]models.StockSnapshot{}
 		latestForPeriod := map[uint]time.Time{}
 		for _, snapshot := range snapshots {
-			key := fmt.Sprintf("%d:%d", snapshot.StockID, snapshot.AccountID)
+            key := snapshot.Key()
 			latest, existsLatest := snapshotMap[key]
 			if !existsLatest || snapshot.Date.Compare(latest.Date) == 1 {
 				snapshotMap[key] = snapshot
@@ -88,7 +90,7 @@ func HoldingsMetric(timeMap map[string][]models.StockSnapshot,
 		}
 		items[timePeriod] = timeTotal
 	}
-	items[SummaryLabels["holdings"]] = items[latestTimePeriod]
+	items[MetricMeta["holdings"].SummaryLabel] = items[latestTimePeriod]
 	return items
 }
 
@@ -102,13 +104,20 @@ var metricsMap = map[string]func(
 
 	"holdings": HoldingsMetric,
 }
-var SummaryLabels = map[string]string{
 
-	"performance": "Average",
-
-	"weighted_performance": "Average",
-
-	"holdings": "Latest",
+var MetricMeta = map[string]models.PerformanceMetricMeta{
+	"performance": models.PerformanceMetricMeta{
+		PermitLimited: true,
+		SummaryLabel:  "Average",
+	},
+	"weighted_performance": models.PerformanceMetricMeta{
+		PermitLimited: true,
+		SummaryLabel:  "Average",
+	},
+	"holdings": models.PerformanceMetricMeta{
+		PermitLimited: false,
+		SummaryLabel:  "Latest",
+	},
 }
 
 var Metrics = util.MapKeys(metricsMap)

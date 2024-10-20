@@ -13,6 +13,7 @@ import (
 	"github.com/goldsproutapp/goldsprout-backend/middleware"
 	"github.com/goldsproutapp/goldsprout-backend/models"
 	"github.com/goldsproutapp/goldsprout-backend/request"
+	"github.com/goldsproutapp/goldsprout-backend/util"
 	"gorm.io/gorm"
 )
 
@@ -36,7 +37,7 @@ func Login(ctx *gin.Context) {
 			ctx.AbortWithStatusJSON(http.StatusForbidden, gin.H{"message": "invalid username or password"})
 			return
 		}
-		token = auth.CreateToken(db, user, ctx.Request.UserAgent())
+		token = auth.CreateToken(db, user, util.FormatUA(ctx.Request.UserAgent()), true)
 	}
 	ctx.JSON(http.StatusOK, gin.H{
 		"success": true,
@@ -70,7 +71,7 @@ func AcceptInvitation(ctx *gin.Context) {
 	}
 	user.PasswordHash = auth.HashAndSalt(body.Password)
 	user.Active = true
-	token := auth.CreateToken(db, user, ctx.Request.UserAgent())
+	token := auth.CreateToken(db, user, util.FormatUA(ctx.Request.UserAgent()), false)
 	request.Created(ctx, gin.H{
 		"token": token,
 		"data":  user,

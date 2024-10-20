@@ -25,7 +25,7 @@ func CanModifyStock(db *gorm.DB, user models.User, id uint) bool {
 		return true
 	}
 	for _, uid := range uids {
-		if uid != user.ID && !auth.HasAccessPerm(user, uid, false, true) {
+		if uid != user.ID && !auth.HasAccessPerm(user, uid, false, true, false) {
 			return false
 		}
 	}

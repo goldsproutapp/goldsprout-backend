@@ -7,10 +7,21 @@ import (
 )
 
 type PerformanceQueryInfo struct {
-	TargetKey  string
-	AgainstKey string
-	TimeKey    string
-	MetricKey  string
+	TargetKey      string
+	AgainstKey     string
+	TimeKey        string
+	MetricKey      string
+	Meta           PerformanceMetricMeta
+	MetricFunction PerformanceMetricFunction
+}
+
+type PerformanceMetricFunction func(
+	timeMap map[string][]StockSnapshot,
+) map[string]decimal.Decimal
+
+type PerformanceMetricMeta struct {
+	PermitLimited bool
+	SummaryLabel  string
 }
 
 type CategoryPerformance struct {

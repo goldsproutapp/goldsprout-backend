@@ -19,7 +19,7 @@ import (
 func GetLatestSnapshotList(ctx *gin.Context) {
 	db := middleware.GetDB(ctx)
 	user := middleware.GetUser(ctx)
-	stocks := database.GetHeldStocks(user, db)
+	stocks := database.GetHeldStocks(user, db, false)
 	all_snapshots := database.GetLatestSnapshots(stocks, db)
 	snapshots := []models.StockSnapshot{}
 	for _, snapshot := range all_snapshots {
@@ -48,162 +48,169 @@ func CreateSnapshots(ctx *gin.Context) {
 		request.BadRequest(ctx)
 		return
 	}
-	account, err := database.GetAccount(db, body.AccountID)
-	if err != nil {
-		request.BadRequest(ctx)
-		return
-	}
-	if !auth.HasAccessPerm(user, account.UserID, false, true) {
-		request.Forbidden(ctx)
-		return
-	}
-	userStocks := make([]models.UserStock, len(body.Entries))
-	stockIDs := util.NewHashSet[uint]()
-	providerIDs := util.NewHashSet[uint]()
-	for i, snapshot := range body.Entries {
-		globalStock, err := database.GetGlobalStockByNameOrCode(
-			db, snapshot.StockName, snapshot.StockCode, account.ProviderID)
+	out := []models.StockSnapshot{}
+	for _, batch := range body.Batches {
+		account, err := database.GetAccount(db, batch.AccountID)
 		if err != nil {
-			globalStock = models.Stock{
-				Name:             snapshot.StockName,
-				ProviderID:       account.ProviderID,
-				Sector:           constants.DEFAULT_SECTOR_NAME,
-				Region:           constants.DEFAULT_REGION_NAME,
-				StockCode:        snapshot.StockCode,
-				NeedsAttention:   true, // The defaults set above need manually reviewing
-				TrackingStrategy: constants.STRATEGY_DATA_IMPORT,
-				AnnualFee:        0,
-			}
-			res := db.Create(&globalStock)
-			if res.Error != nil {
-				request.BadRequest(ctx)
-				return
-			}
-		}
-		userStock, err := database.GetUserStock(db, account.UserID, globalStock.ID, account.ID)
-		if err != nil {
-			userStock = models.UserStock{
-				UserID:        account.UserID,
-				StockID:       globalStock.ID,
-				AccountID:     account.ID,
-				CurrentlyHeld: true,
-				Notes:         "",
-			}
-			res := db.Create(&userStock)
-			if res.Error != nil {
-				request.BadRequest(ctx)
-				return
-			}
-		}
-		// NOTE: is there a case to made for relaxing the permission requirements here?
-		if database.CanModifyStock(db, user, globalStock.ID) {
-			globalStock.Region = util.UpdateIfSet(globalStock.Region, snapshot.Region)
-			globalStock.Sector = util.UpdateIfSet(globalStock.Sector, snapshot.Sector)
-			if snapshot.AnnualFee != "" {
-				fee, err := strconv.ParseFloat(snapshot.AnnualFee, 32)
-				if err == nil {
-					globalStock.AnnualFee = float32(fee)
-				}
-			}
-			globalStock.Name = snapshot.StockName
-			if snapshot.StockCode != "" {
-				globalStock.StockCode = snapshot.StockCode
-			}
-			db.Save(&globalStock)
-		}
-
-		if !userStock.CurrentlyHeld {
-			userStock.CurrentlyHeld = true
-			db.Save(&userStock)
-		}
-		userStocks[i] = userStock
-		stockIDs.Add(userStock.StockID)
-		providerIDs.Add(account.ProviderID)
-	}
-	prevSnapshots := database.GetLatestSnapshots(userStocks, db)
-
-	objs := []models.StockSnapshot{}
-bodyLoop:
-	for i, snapshot := range body.Entries {
-		userStock := userStocks[i]
-		prevSnapshot := prevSnapshots[i]
-
-		date := time.Unix(body.Date, 0)
-		if prevSnapshot != nil && date.Sub(prevSnapshot.Date).Abs().Hours() < 1 {
-			request.Conflict(ctx)
-			return
-		}
-
-		errList := []error{}
-		price := util.ParseDecimal(snapshot.Price, &errList)
-		value := util.ParseDecimal(snapshot.Value, &errList)
-		totalChange := util.ParseDecimal(snapshot.AbsoluteChange, &[]error{})
-
-		obj := models.StockSnapshot{
-			UserID:                account.UserID,
-			Date:                  date,
-			StockID:               userStock.StockID,
-			AccountID:             account.ID,
-			Units:                 util.ParseDecimal(snapshot.Units, &errList),
-			Price:                 price,
-			Cost:                  util.ParseDecimal(snapshot.Cost, &errList),
-			Value:                 value,
-			ChangeToDate:          totalChange,
-			ChangeSinceLast:       calculations.CalculateValueChange(value, prevSnapshot),
-			NormalisedPerformance: calculations.CalculateNormalisedPerformance(price, prevSnapshot, date),
-		}
-		if len(errList) != 0 {
 			request.BadRequest(ctx)
 			return
 		}
-
-		for j, other := range objs {
-			if j >= i {
-				break
-			}
-			if other.StockID == userStock.StockID {
-				// Price and normalised performance should be the same in both instances.
-				// If it's not, then the input data is bad.
-				newOther := models.StockSnapshot{
-					UserID:                other.UserID,
-					Date:                  other.Date,
-					StockID:               other.StockID,
-					AccountID:             other.AccountID,
-					Units:                 other.Units.Add(obj.Units),
-					Price:                 other.Price.Add(obj.Price),
-					Cost:                  other.Cost.Add(obj.Cost),
-					Value:                 other.Value.Add(obj.Value),
-					ChangeToDate:          other.ChangeToDate.Add(obj.ChangeToDate),
-					ChangeSinceLast:       calculations.CalculateValueChange(obj.Value.Add(other.Value), prevSnapshot),
-					NormalisedPerformance: other.NormalisedPerformance,
+		if !auth.HasAccessPerm(user, account.UserID, false, true, false) {
+			request.Forbidden(ctx)
+			return
+		}
+		userStocks := make([]models.UserStock, len(batch.Entries))
+		stockIDs := util.NewHashSet[uint]()
+		providerIDs := util.NewHashSet[uint]()
+		for i, snapshot := range batch.Entries {
+			globalStock, err := database.GetGlobalStockByNameOrCode(
+				db, snapshot.StockName, snapshot.StockCode, account.ProviderID)
+			if err != nil {
+				globalStock = models.Stock{
+					Name:             snapshot.StockName,
+					ProviderID:       account.ProviderID,
+					Sector:           constants.DEFAULT_SECTOR_NAME,
+					Region:           constants.DEFAULT_REGION_NAME,
+					StockCode:        snapshot.StockCode,
+					NeedsAttention:   true, // The defaults set above need manually reviewing
+					TrackingStrategy: constants.STRATEGY_DATA_IMPORT,
+					AnnualFee:        0,
 				}
-				objs[j] = newOther
-				continue bodyLoop
+				res := db.Create(&globalStock)
+				if res.Error != nil {
+					request.BadRequest(ctx)
+					return
+				}
+			}
+			userStock, err := database.GetUserStock(db, account.UserID, globalStock.ID, account.ID)
+			if err != nil {
+				userStock = models.UserStock{
+					UserID:        account.UserID,
+					StockID:       globalStock.ID,
+					AccountID:     account.ID,
+					CurrentlyHeld: true,
+					Notes:         "",
+				}
+				res := db.Create(&userStock)
+				if res.Error != nil {
+					request.BadRequest(ctx)
+					return
+				}
+			}
+			// NOTE: is there a case to made for relaxing the permission requirements here?
+			if database.CanModifyStock(db, user, globalStock.ID) {
+				globalStock.Region = util.UpdateIfSet(globalStock.Region, snapshot.Region)
+				globalStock.Sector = util.UpdateIfSet(globalStock.Sector, snapshot.Sector)
+				if snapshot.AnnualFee != "" {
+					fee, err := strconv.ParseFloat(snapshot.AnnualFee, 32)
+					if err == nil {
+						globalStock.AnnualFee = float32(fee)
+					}
+				}
+				globalStock.Name = snapshot.StockName
+				if snapshot.StockCode != "" {
+					globalStock.StockCode = snapshot.StockCode
+				}
+				db.Save(&globalStock)
+			}
+
+			if !userStock.CurrentlyHeld {
+				userStock.CurrentlyHeld = true
+				db.Save(&userStock)
+			}
+			userStocks[i] = userStock
+			stockIDs.Add(userStock.StockID)
+			providerIDs.Add(account.ProviderID)
+		}
+		prevSnapshots := database.GetLatestSnapshots(userStocks, db)
+
+		objs := []models.StockSnapshot{}
+	bodyLoop:
+		for i, snapshot := range batch.Entries {
+			userStock := userStocks[i]
+			prevSnapshot := prevSnapshots[i]
+
+			date := time.Unix(batch.Date, 0)
+			if prevSnapshot != nil && date.Sub(prevSnapshot.Date).Abs().Hours() < 1 {
+				request.Conflict(ctx)
+				return
+			}
+
+			errList := []error{}
+			price := util.ParseDecimal(snapshot.Price, &errList)
+			value := util.ParseDecimal(snapshot.Value, &errList)
+			totalChange := util.ParseDecimal(snapshot.AbsoluteChange, &[]error{})
+			cost := util.ParseDecimal(snapshot.Cost, &errList)
+			units := util.ParseDecimal(snapshot.Units, &errList)
+
+			obj := models.StockSnapshot{
+				UserID:                account.UserID,
+				Date:                  date,
+				StockID:               userStock.StockID,
+				AccountID:             account.ID,
+				Units:                 units,
+				Price:                 price,
+				Cost:                  cost,
+				Value:                 value,
+				ChangeToDate:          totalChange,
+				ChangeSinceLast:       calculations.CalculateValueChange(totalChange, prevSnapshot),
+				NormalisedPerformance: calculations.CalculateNormalisedPerformance(price, prevSnapshot, date),
+			}
+			if len(errList) != 0 {
+				request.BadRequest(ctx)
+				return
+			}
+
+			for j, other := range objs {
+				if j >= i {
+					break
+				}
+				if other.StockID == userStock.StockID {
+					// Price and normalised performance should be the same in both instances.
+					// If it's not, then the input data is bad.
+					newOther := models.StockSnapshot{
+						UserID:                other.UserID,
+						Date:                  other.Date,
+						StockID:               other.StockID,
+						AccountID:             other.AccountID,
+						Units:                 other.Units.Add(obj.Units),
+						Price:                 other.Price.Add(obj.Price),
+						Cost:                  other.Cost.Add(obj.Cost),
+						Value:                 other.Value.Add(obj.Value),
+						ChangeToDate:          other.ChangeToDate.Add(obj.ChangeToDate),
+						ChangeSinceLast:       calculations.CalculateValueChange(obj.ChangeToDate.Add(other.ChangeToDate), prevSnapshot),
+						NormalisedPerformance: other.NormalisedPerformance,
+					}
+					objs[j] = newOther
+					continue bodyLoop
+				}
+			}
+			objs = append(objs, obj)
+		}
+		if len(objs) > 0 {
+			result := db.Create(&objs)
+			if result.Error != nil {
+				request.BadRequest(ctx)
+				return
 			}
 		}
-		objs = append(objs, obj)
-	}
-	result := db.Create(&objs)
-	if result.Error != nil {
-		request.BadRequest(ctx)
-		return
-	}
-	if body.DeleteSoldStocks {
-		var toUpdate []models.UserStock
-		db.Model(&models.UserStock{}).
-			Joins("INNER JOIN stocks on stocks.id = user_stocks.stock_id").
-			Where("user_id = ?", account.UserID).
-			Where("account_id = ?", account.ID).
-			Where("stock_id NOT IN ?", stockIDs.Items()).
-			Where("stocks.provider_id IN ?", providerIDs.Items()).
-			Find(&toUpdate)
-		toUpdateIDs := make([]uint, len(toUpdate))
-		for i, us := range toUpdate {
-			toUpdateIDs[i] = us.ID
+		if batch.DeleteSoldStocks {
+			var toUpdate []models.UserStock
+			qry := db.Model(&models.UserStock{}).
+				Where("account_id = ?", account.ID)
+			if stockIDs.Size() > 0 {
+				qry = qry.Where("stock_id NOT IN ?", stockIDs.Items())
+			}
+			qry.Find(&toUpdate)
+			toUpdateIDs := make([]uint, len(toUpdate))
+			for i, us := range toUpdate {
+				toUpdateIDs[i] = us.ID
+			}
+			db.Model(&models.UserStock{}).Where("id IN ?", toUpdateIDs).Update("currently_held", false)
 		}
-		db.Model(&models.UserStock{}).Where("id IN ?", toUpdateIDs).Update("currently_held", false)
+		out = append(out, objs...)
 	}
-	request.Created(ctx, objs)
+	request.Created(ctx, out)
 }
 
 func DeleteSnapshot(ctx *gin.Context) {
@@ -220,7 +227,7 @@ func DeleteSnapshot(ctx *gin.Context) {
 		request.NotFound(ctx)
 		return
 	}
-	if !auth.HasAccessPerm(user, snapshot.UserID, false, true) {
+	if !auth.HasAccessPerm(user, snapshot.UserID, false, true, false) {
 		request.Forbidden(ctx)
 		return
 	}
