@@ -8,11 +8,11 @@ import (
 	"github.com/shopspring/decimal"
 )
 
-func CalculateValueChange(value decimal.Decimal, prevSnapshot *models.StockSnapshot) decimal.Decimal {
+func CalculateValueChange(totalChange decimal.Decimal, prevSnapshot *models.StockSnapshot) decimal.Decimal {
 	if prevSnapshot == nil {
-		return decimal.NewFromInt(0)
+		return totalChange
 	}
-	return value.Sub(prevSnapshot.Value)
+    return totalChange.Sub(prevSnapshot.ChangeToDate).Truncate(2)
 }
 
 func CalculateNormalisedPerformance(
