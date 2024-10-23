@@ -37,7 +37,7 @@ func Login(ctx *gin.Context) {
 			ctx.AbortWithStatusJSON(http.StatusForbidden, gin.H{"message": "invalid username or password"})
 			return
 		}
-		token = auth.CreateToken(db, user, util.FormatUA(ctx.Request.UserAgent()), true)
+		token = auth.CreateToken(db, user, util.FormatUA(ctx.Request.UserAgent()))
 	}
 	ctx.JSON(http.StatusOK, gin.H{
 		"success": true,
@@ -71,7 +71,7 @@ func AcceptInvitation(ctx *gin.Context) {
 	}
 	user.PasswordHash = auth.HashAndSalt(body.Password)
 	user.Active = true
-	token := auth.CreateToken(db, user, util.FormatUA(ctx.Request.UserAgent()), false)
+	token := auth.CreateToken(db, user, util.FormatUA(ctx.Request.UserAgent()))
 	request.Created(ctx, gin.H{
 		"token": token,
 		"data":  user,
