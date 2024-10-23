@@ -21,7 +21,7 @@ func GetUserInfo(ctx *gin.Context) {
 	} else {
 		var users []models.User
 		db.Model(&models.User{}).Where("id IN ?", uids).Find(&users)
-		ctx.JSON(http.StatusOK, util.Map(users, models.User.PublicInfo))
+		request.OK(ctx, util.Map(users, models.User.PublicInfo))
 	}
 }
 
