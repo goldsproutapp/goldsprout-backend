@@ -1,7 +1,6 @@
 package split
 
 import (
-	"fmt"
 	"slices"
 	"time"
 
@@ -36,22 +35,38 @@ func CategoriseSnapshots(snapshots []models.StockSnapshot, categoryKey string,
 func CalculateSplit(grouped splitMap) map[string]decimal.Decimal {
 	totals := map[string]decimal.Decimal{}
 	total := decimal.NewFromInt(0)
+	accountMap := map[uint]time.Time{}
 	for category, snapshots := range grouped {
 		timeMap := map[string]time.Time{}
+		keyToAccountMap := map[string]uint{}
 		valueMap := map[string]decimal.Decimal{}
 		for _, snapshot := range snapshots {
-			key := fmt.Sprintf("%d:%d", snapshot.AccountID, snapshot.StockID)
+			key := snapshot.Key()
+			accountLatest, existsAccountLatest := accountMap[snapshot.AccountID]
+			if !existsAccountLatest || snapshot.Date.After(accountLatest) {
+				accountMap[snapshot.AccountID] = snapshot.Date
+			}
 			latest, existsLatest := timeMap[key]
-			if !existsLatest || snapshot.Date.Compare(latest) == 1 {
+			if !existsLatest || snapshot.Date.Compare(latest) == 1 && !accountMap[snapshot.AccountID].After(snapshot.Date) {
 				timeMap[key] = snapshot.Date
+				keyToAccountMap[key] = snapshot.AccountID
 				valueMap[key] = snapshot.Value
 			}
 		}
-		values := make([]decimal.Decimal, 0, len(valueMap))
-		for _, v := range valueMap {
-			values = append(values, v)
+		values := []decimal.Decimal{}
+		for k, v := range valueMap {
+			if !timeMap[k].Before(accountMap[keyToAccountMap[k]]) {
+				values = append(values, v)
+			}
 		}
-		sum := decimal.Sum(values[0], values[1:]...)
+		var sum decimal.Decimal
+		if len(values) == 0 {
+			sum = decimal.NewFromInt(0)
+		} else if len(values) == 1 {
+			sum = values[0]
+		} else {
+			sum = decimal.Sum(values[0], values[1:]...)
+		}
 		totals[category] = sum
 		total = total.Add(sum)
 	}
