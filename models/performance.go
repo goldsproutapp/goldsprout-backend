@@ -31,8 +31,9 @@ type CategoryPerformance struct {
 
 type PerformanceResponse struct {
 	TimePeriods []string                       `json:"time_periods,omitempty"`
-	TimeFocus   [][]string                     `json:"time_focus"`
+	TimeFocus   [][]string                     `json:"time_focus,omitempty"`
 	Data        map[string]CategoryPerformance `json:"data,omitempty"`
+	SummaryRow  string                         `json:"summary_row"`
 }
 
 type PerformanceMap = map[string]map[string]map[string][]StockSnapshot

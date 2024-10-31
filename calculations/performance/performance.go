@@ -4,6 +4,7 @@ import (
 	"slices"
 	"time"
 
+	"github.com/goldsproutapp/goldsprout-backend/constants"
 	"github.com/goldsproutapp/goldsprout-backend/models"
 	"github.com/goldsproutapp/goldsprout-backend/util"
 	"github.com/shopspring/decimal"
@@ -31,6 +32,9 @@ func ProcessSnapshots(snapshots []models.StockSnapshot, info models.PerformanceQ
 		against := GetKeyFromSnapshot(snapshot, info.AgainstKey)
 
 		addSnapshotToMap(&groups, snapshot, target, against, timeCategory)
+		if info.GenerateSummary() {
+			addSnapshotToMap(&groups, snapshot, constants.TRENDS_SUMMARY, "", timeCategory)
+		}
 	}
 	timePeriods := timeListGetters[info.TimeKey](timeCategories.Items())
 	focusTime := util.Map(timePeriods, timeFocus[info.TimeKey])
@@ -38,10 +42,17 @@ func ProcessSnapshots(snapshots []models.StockSnapshot, info models.PerformanceQ
 }
 
 func BuildSummary(perfMap models.PerformanceMap, info models.PerformanceQueryInfo, timePeriods []string, timeFocus [][]string) models.PerformanceResponse {
+	var summary string
+	if info.GenerateSummary() {
+		summary = constants.TRENDS_SUMMARY
+	} else {
+		summary = ""
+	}
 	res := models.PerformanceResponse{
 		TimePeriods: timePeriods,
 		Data:        map[string]models.CategoryPerformance{},
 		TimeFocus:   timeFocus,
+		SummaryRow:  summary,
 	}
 	for target, groups := range perfMap {
 		category := models.CategoryPerformance{
@@ -92,7 +103,7 @@ func GeneratePerformanceGraphInfo(snapshots []models.StockSnapshot) models.Perfo
 	latestMap := map[string]models.StockSnapshot{}
 	snapshotMap := map[uint]map[time.Time][]models.StockSnapshot{}
 	now := time.Now()
-    // TODO: this should be configurable for l10n
+	// TODO: this should be configurable for l10n
 	yearStart := time.Date(now.Year(), 4, 6, 0, 0, 0, 0, time.UTC)
 	if now.Month() < 4 || now.Month() == 4 && now.Day() < 6 {
 		yearStart = yearStart.AddDate(-1, 0, 0)
