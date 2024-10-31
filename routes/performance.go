@@ -78,7 +78,7 @@ func StockPerformance(ctx *gin.Context) {
 func PortfolioPerformance(ctx *gin.Context) {
 	user := middleware.GetUser(ctx)
 	db := middleware.GetDB(ctx)
-	snapshots := database.GetUserSnapshots(user, db)
+	snapshots := database.GetSnapshots([]uint{user.ID}, []uint{}, db)
 	info := performance.GeneratePerformanceGraphInfo(snapshots)
 	request.OK(ctx, info)
 }

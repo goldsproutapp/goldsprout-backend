@@ -1,7 +1,6 @@
 package routes
 
 import (
-	"net/http"
 	"strconv"
 	"time"
 
@@ -27,14 +26,28 @@ func GetLatestSnapshotList(ctx *gin.Context) {
 			snapshots = append(snapshots, *snapshot)
 		}
 	}
-	ctx.JSON(http.StatusOK, snapshots)
+	request.OK(ctx, snapshots)
 }
 
-func GetAllSnapshots(ctx *gin.Context) {
+func GetSnapshotForStock(ctx *gin.Context) {
+	idstr, exists := ctx.GetQuery("id")
+	if !exists {
+		request.BadRequest(ctx)
+		return
+	}
+	id := util.ParseIntOrDefault(idstr, -1)
+	if id == -1 {
+		request.BadRequest(ctx)
+		return
+	}
 	db := middleware.GetDB(ctx)
 	user := middleware.GetUser(ctx)
-	snapshots := database.GetUserSnapshots(user, db)
-	ctx.JSON(http.StatusOK, snapshots)
+	users := []uint{}
+	if !user.IsAdmin {
+		users = auth.GetAllowedUsers(user, true, false, false)
+	}
+	snapshots := database.GetSnapshots(users, []uint{uint(id)}, db)
+	request.OK(ctx, snapshots)
 }
 
 func CreateSnapshots(ctx *gin.Context) {
@@ -237,7 +250,7 @@ func DeleteSnapshot(ctx *gin.Context) {
 
 func RegisterSnapshotRoutes(router *gin.RouterGroup) {
 	router.GET("/snapshots/latest", middleware.Authenticate("AccessPermissions"), GetLatestSnapshotList)
-	router.GET("/snapshots/all", middleware.Authenticate("AccessPermissions"), GetAllSnapshots)
+	router.GET("/snapshots/for_stock", middleware.Authenticate("AccessPermissions"), GetSnapshotForStock)
 	router.POST("/snapshots", middleware.Authenticate("AccessPermissions"), CreateSnapshots)
 	router.DELETE("/snapshots/:id", middleware.Authenticate("AccessPermissions"), DeleteSnapshot)
 }

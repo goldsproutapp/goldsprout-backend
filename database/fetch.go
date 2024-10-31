@@ -37,9 +37,15 @@ func GetHeldStocks(user models.User, db *gorm.DB, permitLimited bool) []models.U
 	return GetUserStocks(user, db, []uint{}, tristate.True(), permitLimited)
 }
 
-func GetUserSnapshots(user models.User, db *gorm.DB, preload ...string) []models.StockSnapshot {
+func GetSnapshots(users []uint, stocks []uint, db *gorm.DB, preload ...string) []models.StockSnapshot {
 	var snapshots []models.StockSnapshot
-	qry := db.Order("date").Where("user_id = ?", user.ID)
+	qry := db.Order("date")
+	if len(users) > 0 {
+		qry = qry.Where("user_id IN ?", users)
+	}
+	if len(stocks) > 0 {
+		qry = qry.Where("stock_id IN ?", stocks)
+	}
 	for _, join := range preload {
 		qry = qry.Preload(join)
 	}

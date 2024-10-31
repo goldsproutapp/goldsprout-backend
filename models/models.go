@@ -48,12 +48,12 @@ type UserStock struct {
 
 type StockSnapshot struct {
 	ID                    uint            `json:"id,omitempty"`
-	User                  User            `json:"user,omitempty"`
+	User                  User            `json:"-"`
 	UserID                uint            `json:"user_id,omitempty"`
-	Account               Account         `json:"account,omitempty"`
+	Account               Account         `json:"-"`
 	AccountID             uint            `json:"account_id,omitempty"`
 	Date                  time.Time       `json:"date,omitempty"`
-	Stock                 Stock           `json:"stock,omitempty"`
+	Stock                 Stock           `json:"-"`
 	StockID               uint            `json:"stock_id,omitempty"`
 	Units                 decimal.Decimal `json:"units,omitempty"`
 	Price                 decimal.Decimal `json:"price,omitempty"`
