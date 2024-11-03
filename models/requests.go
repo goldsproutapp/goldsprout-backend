@@ -55,6 +55,15 @@ type SplitRequestQuery struct {
 	Across  string `binding:"required" json:"across,omitempty" form:"across"`
 }
 
+type SplitHistoryRequestQuery struct {
+	SplitRequestQuery
+	Item string `binding:"required" json:"item,omitempty" form:"item"`
+}
+
+type ReportRequestQuery struct {
+	StockFilterQuery
+}
+
 type UserInvitationRequest struct {
 	Email     string `binding:"required" json:"email,omitempty"`
 	FirstName string `binding:"required" json:"first_name,omitempty"`
