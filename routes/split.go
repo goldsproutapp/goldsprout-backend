@@ -34,7 +34,7 @@ func Split(ctx *gin.Context) {
 	out := map[string]map[string]decimal.Decimal{}
 
 	if query.Compare == "all" {
-		categories := []string{"region", "sector", "provider", "stock"}
+		categories := []string{"region", "sector", "provider", "stock", "account"}
 		for _, categoryKey := range categories {
 			groups := split.CategoriseSnapshots(snapshots, categoryKey)
 			result := split.CalculateSplit(groups)
