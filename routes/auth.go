@@ -71,6 +71,7 @@ func AcceptInvitation(ctx *gin.Context) {
 	}
 	user.PasswordHash = auth.HashAndSalt(body.Password)
 	user.Active = true
+	db.Save(&user)
 	token := auth.CreateToken(db, user, util.FormatUA(ctx.Request.UserAgent()))
 	request.Created(ctx, gin.H{
 		"token": token,
