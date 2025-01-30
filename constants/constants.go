@@ -25,3 +25,6 @@ var MONTHS = []string{"January", "February", "March", "April", "May", "June", "J
 var DEMO_USER_AUTH_TOKEN = "Demo-User"
 
 const TRENDS_SUMMARY = "Summary"
+
+const TransAttrBuySell = 0
+const TransAttrIncomeFee = 1

@@ -47,21 +47,22 @@ type UserStock struct {
 }
 
 type StockSnapshot struct {
-	ID                    uint            `json:"id,omitempty"`
-	User                  User            `json:"-"`
-	UserID                uint            `json:"user_id,omitempty"`
-	Account               Account         `json:"-"`
-	AccountID             uint            `json:"account_id,omitempty"`
-	Date                  time.Time       `json:"date,omitempty"`
-	Stock                 Stock           `json:"-"`
-	StockID               uint            `json:"stock_id,omitempty"`
-	Units                 decimal.Decimal `json:"units,omitempty"`
-	Price                 decimal.Decimal `json:"price,omitempty"`
-	Cost                  decimal.Decimal `json:"cost,omitempty"`
-	Value                 decimal.Decimal `json:"value,omitempty"`
-	ChangeToDate          decimal.Decimal `json:"change_to_date,omitempty"`
-	ChangeSinceLast       decimal.Decimal `json:"change_since_last,omitempty"`      // absolute change in value
-	NormalisedPerformance decimal.Decimal `json:"normalised_performance,omitempty"` // relative change in price per unit (normalised for 30 days)
+	ID                     uint            `json:"id,omitempty"`
+	User                   User            `json:"user,omitempty"`
+	UserID                 uint            `json:"user_id,omitempty"`
+	Account                Account         `json:"account,omitempty"`
+	AccountID              uint            `json:"account_id,omitempty"`
+	Date                   time.Time       `json:"date,omitempty"`
+	Stock                  Stock           `json:"stock,omitempty"`
+	StockID                uint            `json:"stock_id,omitempty"`
+	Units                  decimal.Decimal `json:"units,omitempty"`
+	Price                  decimal.Decimal `json:"price,omitempty"`
+	Cost                   decimal.Decimal `json:"cost,omitempty"`
+	Value                  decimal.Decimal `json:"value,omitempty"`
+	ChangeToDate           decimal.Decimal `json:"change_to_date,omitempty"`
+	ChangeSinceLast        decimal.Decimal `json:"change_since_last,omitempty"`      // absolute change in value
+	NormalisedPerformance  decimal.Decimal `json:"normalised_performance,omitempty"` // relative change in price per unit (normalised for 30 days)
+	TransactionAttribution uint            `json:"transaction_attribution" gorm:"default:0"`
 }
 
 type RegularTransaction struct {

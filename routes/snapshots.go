@@ -157,17 +157,18 @@ func CreateSnapshots(ctx *gin.Context) {
 			units := util.ParseDecimal(snapshot.Units, &errList)
 
 			obj := models.StockSnapshot{
-				UserID:                account.UserID,
-				Date:                  date,
-				StockID:               userStock.StockID,
-				AccountID:             account.ID,
-				Units:                 units,
-				Price:                 price,
-				Cost:                  cost,
-				Value:                 value,
-				ChangeToDate:          totalChange,
-				ChangeSinceLast:       calculations.CalculateValueChange(totalChange, prevSnapshot),
-				NormalisedPerformance: calculations.CalculateNormalisedPerformance(price, prevSnapshot, date),
+				UserID:                 account.UserID,
+				Date:                   date,
+				StockID:                userStock.StockID,
+				AccountID:              account.ID,
+				Units:                  units,
+				Price:                  price,
+				Cost:                   cost,
+				Value:                  value,
+				ChangeToDate:           totalChange,
+				ChangeSinceLast:        calculations.CalculateValueChange(totalChange, prevSnapshot),
+				NormalisedPerformance:  calculations.CalculateNormalisedPerformance(price, prevSnapshot, date),
+				TransactionAttribution: snapshot.TransactionAttribution,
 			}
 			if len(errList) != 0 {
 				request.BadRequest(ctx)
@@ -182,17 +183,18 @@ func CreateSnapshots(ctx *gin.Context) {
 					// Price and normalised performance should be the same in both instances.
 					// If it's not, then the input data is bad.
 					newOther := models.StockSnapshot{
-						UserID:                other.UserID,
-						Date:                  other.Date,
-						StockID:               other.StockID,
-						AccountID:             other.AccountID,
-						Units:                 other.Units.Add(obj.Units),
-						Price:                 other.Price.Add(obj.Price),
-						Cost:                  other.Cost.Add(obj.Cost),
-						Value:                 other.Value.Add(obj.Value),
-						ChangeToDate:          other.ChangeToDate.Add(obj.ChangeToDate),
-						ChangeSinceLast:       calculations.CalculateValueChange(obj.ChangeToDate.Add(other.ChangeToDate), prevSnapshot),
-						NormalisedPerformance: other.NormalisedPerformance,
+						UserID:                 other.UserID,
+						Date:                   other.Date,
+						StockID:                other.StockID,
+						AccountID:              other.AccountID,
+						Units:                  other.Units.Add(obj.Units),
+						Price:                  other.Price.Add(obj.Price),
+						Cost:                   other.Cost.Add(obj.Cost),
+						Value:                  other.Value.Add(obj.Value),
+						ChangeToDate:           other.ChangeToDate.Add(obj.ChangeToDate),
+						ChangeSinceLast:        calculations.CalculateValueChange(obj.ChangeToDate.Add(other.ChangeToDate), prevSnapshot),
+						NormalisedPerformance:  other.NormalisedPerformance,
+						TransactionAttribution: other.TransactionAttribution,
 					}
 					objs[j] = newOther
 					continue bodyLoop
