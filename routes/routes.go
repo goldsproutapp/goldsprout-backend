@@ -22,4 +22,5 @@ func RegisterAllRoutes(router *gin.RouterGroup, db *gorm.DB) {
 	RegisterMiscRoutes(router)
 	RegisterAdminRoutes(router)
 	RegisterExportRoutes(router)
+	RegisterPreferencesRoutes(router)
 }
