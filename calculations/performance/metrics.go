@@ -171,6 +171,23 @@ func HoldingsMetric(timeMap map[string][]models.StockSnapshot,
 	return items
 }
 
+func GainsMetric(timeMap map[string][]models.StockSnapshot,
+) map[string]decimal.Decimal {
+
+	items := map[string]decimal.Decimal{}
+	total := decimal.NewFromInt(0)
+	for timePeriod, snapshots := range timeMap {
+		timeTotal := decimal.NewFromInt(0)
+		for _, snapshot := range snapshots {
+			timeTotal = timeTotal.Add(snapshot.ChangeSinceLast)
+			total = total.Add(snapshot.ChangeSinceLast)
+		}
+		items[timePeriod] = timeTotal
+	}
+	items[MetricMeta["gains"].SummaryLabel] = total
+	return items
+}
+
 var metricsMap = map[string]func(
 	timeMap map[string][]models.StockSnapshot,
 ) map[string]decimal.Decimal{
@@ -182,6 +199,8 @@ var metricsMap = map[string]func(
 	"growth": GrowthMetric,
 
 	"holdings": HoldingsMetric,
+
+	"gains": GainsMetric,
 }
 
 var MetricMeta = map[string]models.PerformanceMetricMeta{
@@ -200,6 +219,10 @@ var MetricMeta = map[string]models.PerformanceMetricMeta{
 	"holdings": models.PerformanceMetricMeta{
 		PermitLimited: false,
 		SummaryLabel:  "Latest",
+	},
+	"gains": models.PerformanceMetricMeta{
+		PermitLimited: false,
+		SummaryLabel:  "Total",
 	},
 }
 
