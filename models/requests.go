@@ -62,7 +62,8 @@ type SplitHistoryRequestQuery struct {
 }
 
 type ReportRequestQuery struct {
-	StockFilterQuery
+	StockFilterQuery `json:"stock_filter_query,omitempty"`
+	Period           string `json:"period,omitempty" form:"period" binding:"required"`
 }
 
 type UserInvitationRequest struct {
