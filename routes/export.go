@@ -29,6 +29,7 @@ var headings = []string{
 	"value",
 	"absolute_change",
 	"normalised_performance",
+	"transaction_attribution",
 }
 
 func FormatCSV(snapshot models.StockSnapshot) string {
@@ -48,6 +49,7 @@ func FormatCSV(snapshot models.StockSnapshot) string {
 		snapshot.Value.String(),
 		snapshot.ChangeToDate.String(),
 		snapshot.NormalisedPerformance.String(),
+		strconv.FormatUint(uint64(snapshot.TransactionAttribution), 10),
 	}
 	return strings.Join(fields, ",")
 }
