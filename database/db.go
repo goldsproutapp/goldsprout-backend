@@ -79,6 +79,7 @@ func InitDB() *gorm.DB {
 		&models.RegularTransaction{},
 		&models.SingleTransaction{},
 		&models.AccessPermission{},
+		&models.ClassCompositionEntry{},
 	)
 	return db
 }

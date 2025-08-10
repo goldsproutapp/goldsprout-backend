@@ -12,8 +12,9 @@ import (
 )
 
 func IsPerformanceQueryValid(p models.PerformanceQueryInfo) bool {
-	return slices.Contains(Targets, p.TargetKey) &&
-		slices.Contains(Targets, p.AgainstKey) &&
+	// TODO: split keys (eg. class) can be valid for some metrics eg. holdings.
+	return slices.Contains(SingleTargets, p.TargetKey) &&
+		slices.Contains(SingleTargets, p.AgainstKey) &&
 		slices.Contains(Metrics, p.MetricKey) &&
 		slices.Contains(Times, p.TimeKey)
 }
@@ -27,12 +28,17 @@ func ProcessSnapshots(snapshots []models.StockSnapshot, info models.PerformanceQ
 	groups := models.PerformanceMap{}
 	timeCategories := util.NewOrderedSet[string]()
 	for _, snapshot := range snapshots {
-		target := GetKeyFromSnapshot(snapshot, info.TargetKey)
+		targetValues := GetKeysFromSnapshot(snapshot, info.TargetKey)
 		timeCategory := getTimeCategoryFromSnapshot(snapshot, info.TimeKey)
 		timeCategories.Add(timeCategory)
-		against := GetKeyFromSnapshot(snapshot, info.AgainstKey)
+		againstValues := GetKeysFromSnapshot(snapshot, info.AgainstKey)
 
-		addSnapshotToMap(&groups, snapshot, target, against, timeCategory)
+		for _, target := range targetValues {
+			for _, against := range againstValues {
+				s := GetContributionForCategory(GetContributionForCategory(snapshot, info.TargetKey, target), info.AgainstKey, against)
+				addSnapshotToMap(&groups, s, target, against, timeCategory)
+			}
+		}
 		if info.GenerateSummary() {
 			addSnapshotToMap(&groups, snapshot, constants.TRENDS_SUMMARY, "", timeCategory)
 		}

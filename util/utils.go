@@ -5,8 +5,8 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/mileusna/useragent"
 	"github.com/goldsproutapp/goldsprout-backend/models"
+	"github.com/mileusna/useragent"
 	"github.com/shopspring/decimal"
 )
 
@@ -16,6 +16,10 @@ func Map[S, T any](src []S, f func(S) T) []T {
 		out[i] = f(src[i])
 	}
 	return out
+}
+
+func Only[T any](obj T) []T {
+	return []T{obj}
 }
 
 func ParseDecimal(input string, errList *[]error) decimal.Decimal {

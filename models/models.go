@@ -23,16 +23,25 @@ type Account struct {
 }
 
 type Stock struct {
-	ID               uint     `json:"id,omitempty"`
-	Name             string   `json:"name,omitempty"`
-	Provider         Provider `json:"provider,omitempty"`
-	ProviderID       uint     `json:"provider_id,omitempty"`
-	Sector           string   `json:"sector,omitempty"`
-	Region           string   `json:"region,omitempty"`
-	StockCode        string   `json:"stock_code,omitempty"`
-	NeedsAttention   bool     `json:"needs_attention,omitempty"`                              // If a stock is created automatically then it needs reviewing manually.
-	TrackingStrategy string   `json:"tracking_strategy,omitempty" gorm:"default:DATA_IMPORT"` // DATA_IMPORT | VALUE_INPUT | API_DATA
-	AnnualFee        float32  `json:"annual_fee,omitempty"`
+	ID                      uint     `json:"id,omitempty"`
+	Name                    string   `json:"name,omitempty"`
+	Provider                Provider `json:"provider,omitempty"`
+	ProviderID              uint     `json:"provider_id,omitempty"`
+	Sector                  string   `json:"sector,omitempty"`
+	Region                  string   `json:"region,omitempty"`
+	StockCode               string   `json:"stock_code,omitempty"`
+	NeedsAttention          bool     `json:"needs_attention,omitempty"`                              // If a stock is created automatically then it needs reviewing manually.
+	TrackingStrategy        string   `json:"tracking_strategy,omitempty" gorm:"default:DATA_IMPORT"` // DATA_IMPORT | VALUE_INPUT | API_DATA
+	AnnualFee               float32  `json:"annual_fee,omitempty"`
+	classCompositionObjects []ClassCompositionEntry
+	ClassCompositionMap     map[string]decimal.Decimal `json:"class_composition" gorm:"-" json:"-" sql:"-"`
+}
+
+type ClassCompositionEntry struct {
+	StockID    uint `gorm:"primaryKey;autoIncrement:false"`
+	Stock      Stock
+	Label      string `gorm:"primaryKey;autoIncrement:false"`
+	Percentage decimal.Decimal
 }
 
 type UserStock struct {

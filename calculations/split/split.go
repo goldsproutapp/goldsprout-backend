@@ -22,11 +22,14 @@ func CategoriseSnapshots(snapshots []models.StockSnapshot, categoryKey string,
 ) splitMap {
 	grouped := splitMap{}
 	for _, snapshot := range snapshots {
-		category := performance.GetKeyFromSnapshot(snapshot, categoryKey)
-		if util.ContainsKey(grouped, category) {
-			grouped[category] = append(grouped[category], snapshot)
-		} else {
-			grouped[category] = []models.StockSnapshot{snapshot}
+		categories := performance.GetKeysFromSnapshot(snapshot, categoryKey)
+		for _, category := range categories {
+			s := performance.GetContributionForCategory(snapshot, categoryKey, category)
+			if util.ContainsKey(grouped, category) {
+				grouped[category] = append(grouped[category], s)
+			} else {
+				grouped[category] = []models.StockSnapshot{s}
+			}
 		}
 	}
 	return grouped
