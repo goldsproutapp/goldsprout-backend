@@ -177,6 +177,12 @@ func GetSectors(db *gorm.DB) []string {
 	return sectors
 }
 
+func GetClasses(db *gorm.DB) []string {
+	var classes []string
+	db.Model(&models.ClassCompositionEntry{}).Select("label").Distinct("label").Find(&classes)
+	return classes
+}
+
 func GetOverview(db *gorm.DB, user models.User) models.OverviewResponse {
 	uids := auth.GetAllowedUsers(user, true, false, false)
 	if user.IsAdmin {
