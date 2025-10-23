@@ -8,7 +8,7 @@ import (
 	"github.com/goldsproutapp/goldsprout-backend/database"
 	"github.com/goldsproutapp/goldsprout-backend/middleware"
 	"github.com/goldsproutapp/goldsprout-backend/models"
-	"github.com/goldsproutapp/goldsprout-backend/request"
+	"github.com/goldsproutapp/goldsprout-backend/request/response"
 	"github.com/goldsproutapp/goldsprout-backend/util"
 )
 
@@ -17,11 +17,11 @@ func GetUserInfo(ctx *gin.Context) {
 	user := middleware.GetUser(ctx)
 	uids := auth.GetAllowedUsers(user, true, false, true)
 	if user.IsAdmin {
-		request.OK(ctx, database.GetAllUsers(db, "AccessPermissions"))
+		response.OK(ctx, database.GetAllUsers(db, "AccessPermissions"))
 	} else {
 		var users []models.User
 		db.Model(&models.User{}).Where("id IN ?", uids).Find(&users)
-		request.OK(ctx, util.Map(users, models.User.PublicInfo))
+		response.OK(ctx, util.Map(users, models.User.PublicInfo))
 	}
 }
 
@@ -42,12 +42,12 @@ func UpdateUserInfo(ctx *gin.Context) {
 	user := middleware.GetUser(ctx)
 	var body models.UserUpdateInfo
 	if ctx.BindJSON(&body) != nil {
-		request.BadRequest(ctx)
+		response.BadRequest(ctx)
 		return
 	}
 	user.ApplyUpdate(body)
 	db.Save(&user)
-	request.OK(ctx, user)
+	response.OK(ctx, user)
 }
 
 func RegisterUserRoutes(router *gin.RouterGroup) {

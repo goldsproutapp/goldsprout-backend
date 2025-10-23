@@ -5,7 +5,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/goldsproutapp/goldsprout-backend/middleware"
-	"github.com/goldsproutapp/goldsprout-backend/request"
+	"github.com/goldsproutapp/goldsprout-backend/request/response"
 )
 
 func GetPreferences(ctx *gin.Context) {
@@ -13,9 +13,9 @@ func GetPreferences(ctx *gin.Context) {
 	var jsonData interface{}
 	err := json.Unmarshal([]byte(user.ClientOpts), &jsonData)
 	if err != nil {
-		request.OK(ctx, gin.H{})
+		response.OK(ctx, gin.H{})
 	} else {
-		request.OK(ctx, jsonData)
+		response.OK(ctx, jsonData)
 	}
 }
 
@@ -23,19 +23,19 @@ func SetPreferenecs(ctx *gin.Context) {
 	var jsonData any
 	err := ctx.BindJSON(&jsonData)
 	if err != nil {
-		request.BadRequest(ctx)
+		response.BadRequest(ctx)
 		return
 	}
 	jsonString, err := json.Marshal(jsonData)
 	if err != nil {
-		request.BadRequest(ctx)
+		response.BadRequest(ctx)
 		return
 	}
 	user := middleware.GetUser(ctx)
 	db := middleware.GetDB(ctx)
 	user.ClientOpts = string(jsonString)
 	db.Save(&user)
-	request.OK(ctx, jsonData)
+	response.OK(ctx, jsonData)
 }
 
 func RegisterPreferencesRoutes(router *gin.RouterGroup) {

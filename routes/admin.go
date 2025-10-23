@@ -9,7 +9,7 @@ import (
 	"github.com/goldsproutapp/goldsprout-backend/email"
 	"github.com/goldsproutapp/goldsprout-backend/middleware"
 	"github.com/goldsproutapp/goldsprout-backend/models"
-	"github.com/goldsproutapp/goldsprout-backend/request"
+	"github.com/goldsproutapp/goldsprout-backend/request/response"
 	"gorm.io/gorm"
 )
 
@@ -17,19 +17,19 @@ func InviteUser(ctx *gin.Context) {
 	user := middleware.GetUser(ctx)
 	db := middleware.GetDB(ctx)
 	if !user.IsAdmin {
-		request.Forbidden(ctx)
+		response.Forbidden(ctx)
 		return
 	}
 	var body models.UserInvitationRequest
 	err := ctx.BindJSON(&body)
 	if err != nil {
-		request.BadRequest(ctx)
+		response.BadRequest(ctx)
 		return
 	}
 	var existingUser models.User
 	res := db.Where(&models.User{Email: body.Email}).First(&existingUser)
 	if !errors.Is(res.Error, gorm.ErrRecordNotFound) {
-		request.Conflict(ctx)
+		response.Conflict(ctx)
 	}
 	invitedUser := models.User{
 		Email:           body.Email,
@@ -45,24 +45,24 @@ func InviteUser(ctx *gin.Context) {
 	}
 	db.Save(&invitedUser)
 	email.SendInvitation(body.Email, user, invitedUser.InvitationToken)
-	request.Created(ctx, invitedUser)
+	response.Created(ctx, invitedUser)
 }
 
 func SetPermissions(ctx *gin.Context) {
 	admin := middleware.GetUser(ctx)
 	db := middleware.GetDB(ctx)
 	if !admin.IsAdmin {
-		request.Forbidden(ctx)
+		response.Forbidden(ctx)
 		return
 	}
 	var body models.SetPermissionsRequest
 	if ctx.BindJSON(&body) != nil {
-		request.BadRequest(ctx)
+		response.BadRequest(ctx)
 		return
 	}
 	var user models.User
 	if !database.Exists(db.Model(&models.User{}).Where("id = ?", body.User).Preload("AccessPermissions").First(&user)) {
-		request.NotFound(ctx)
+		response.NotFound(ctx)
 		return
 	}
 	if user.Trusted != *body.Trusted {
@@ -102,18 +102,18 @@ func SetPermissions(ctx *gin.Context) {
 	if len(updatePermissions) > 0 {
 		db.Save(&updatePermissions)
 	}
-	request.OK(ctx, user)
+	response.OK(ctx, user)
 }
 
 func MassDelete(ctx *gin.Context) {
 	user := middleware.GetUser(ctx)
 	if !user.IsAdmin {
-		request.Forbidden(ctx)
+		response.Forbidden(ctx)
 		return
 	}
 	var body models.MassDeleteRequest
 	if ctx.BindJSON(&body) != nil {
-		request.BadRequest(ctx)
+		response.BadRequest(ctx)
 		return
 	}
 	db := middleware.GetDB(ctx)

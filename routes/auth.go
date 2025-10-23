@@ -12,7 +12,7 @@ import (
 	"github.com/goldsproutapp/goldsprout-backend/database"
 	"github.com/goldsproutapp/goldsprout-backend/middleware"
 	"github.com/goldsproutapp/goldsprout-backend/models"
-	"github.com/goldsproutapp/goldsprout-backend/request"
+	"github.com/goldsproutapp/goldsprout-backend/request/response"
 	"github.com/goldsproutapp/goldsprout-backend/util"
 	"gorm.io/gorm"
 )
@@ -21,7 +21,7 @@ func Login(ctx *gin.Context) {
 	header := ctx.GetHeader("Authorization")
 	parts := strings.Split(header, ":")
 	if len(parts) != 2 {
-		request.BadRequest(ctx)
+		response.BadRequest(ctx)
 		return
 	}
 	db := middleware.GetDB(ctx)
@@ -52,7 +52,7 @@ func Logout(ctx *gin.Context) {
 	if !session.IsDemoSession {
 		db.Delete(&session)
 	}
-	request.NoContent(ctx)
+	response.NoContent(ctx)
 }
 
 func AcceptInvitation(ctx *gin.Context) {
@@ -60,20 +60,20 @@ func AcceptInvitation(ctx *gin.Context) {
 	var body models.UserInvitationAccept
 	err := ctx.BindJSON(&body)
 	if err != nil {
-		request.BadRequest(ctx)
+		response.BadRequest(ctx)
 		return
 	}
 	var user models.User
 	res := db.Where(models.User{InvitationToken: body.Token, PasswordHash: "", Active: false}).First(&user)
 	if errors.Is(res.Error, gorm.ErrRecordNotFound) {
-		request.BadRequest(ctx)
+		response.BadRequest(ctx)
 		return
 	}
 	user.PasswordHash = auth.HashAndSalt(body.Password)
 	user.Active = true
 	db.Save(&user)
 	token := auth.CreateToken(db, user, util.FormatUA(ctx.Request.UserAgent()))
-	request.Created(ctx, gin.H{
+	response.Created(ctx, gin.H{
 		"token": token,
 		"data":  user,
 	})
@@ -84,11 +84,11 @@ func ChangePassword(ctx *gin.Context) {
 	user := middleware.GetUser(ctx)
 	var body models.PasswordChangeRequest
 	if ctx.BindJSON(&body) != nil {
-		request.BadRequest(ctx)
+		response.BadRequest(ctx)
 		return
 	}
 	if !auth.ValidatePassword(body.OldPassword, user.PasswordHash) {
-		request.Forbidden(ctx)
+		response.Forbidden(ctx)
 		return
 	}
 	user.PasswordHash = auth.HashAndSalt(body.NewPassword)

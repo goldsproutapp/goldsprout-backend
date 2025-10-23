@@ -6,7 +6,7 @@ import (
 	"github.com/goldsproutapp/goldsprout-backend/database"
 	"github.com/goldsproutapp/goldsprout-backend/middleware"
 	"github.com/goldsproutapp/goldsprout-backend/models"
-	"github.com/goldsproutapp/goldsprout-backend/request"
+	"github.com/goldsproutapp/goldsprout-backend/request/response"
 	"github.com/goldsproutapp/goldsprout-backend/util"
 	"github.com/shopspring/decimal"
 )
@@ -16,14 +16,14 @@ func GetAccounts(ctx *gin.Context) {
 	user := middleware.GetUser(ctx)
 	accounts, err := database.GetVisibleAccounts(db, user, false)
 	if err != nil {
-		request.BadRequest(ctx)
+		response.BadRequest(ctx)
 		return
 	}
 	out := make([]models.AccountReponse, len(accounts))
 	for i, acc := range accounts {
 		userStocks, err := database.GetStocksForAccount(db, acc.ID)
 		if err != nil {
-			request.BadRequest(ctx) // TODO: this isn't really the right response code here
+			response.BadRequest(ctx) // TODO: this isn't really the right response code here
 			return
 		}
 		var numStocks uint = 0
@@ -41,19 +41,19 @@ func GetAccounts(ctx *gin.Context) {
 			StockCount: numStocks,
 		}
 	}
-	request.OK(ctx, out)
+	response.OK(ctx, out)
 }
 
 func CreateAccount(ctx *gin.Context) {
 	var body models.CreateAccountRequest
 	if ctx.BindJSON(&body) != nil {
-		request.BadRequest(ctx)
+		response.BadRequest(ctx)
 		return
 	}
 	db := middleware.GetDB(ctx)
 	user := middleware.GetUser(ctx)
 	if !auth.HasAccessPerm(user, body.UserID, false, true, false) {
-		request.Forbidden(ctx)
+		response.Forbidden(ctx)
 		return
 	}
 	account := models.Account{
@@ -63,34 +63,34 @@ func CreateAccount(ctx *gin.Context) {
 	}
 	res := db.Create(&account)
 	if res.Error != nil {
-		request.BadRequest(ctx)
+		response.BadRequest(ctx)
 		return
 	}
-	request.Created(ctx, account)
+	response.Created(ctx, account)
 }
 
 func DeleteAccount(ctx *gin.Context) {
 	errs := []error{}
 	id := util.ParseUint(ctx.Param("id"), &errs)
 	if len(errs) > 0 {
-		request.BadRequest(ctx)
+		response.BadRequest(ctx)
 		return
 	}
 	db := middleware.GetDB(ctx)
 	user := middleware.GetUser(ctx)
 	account, err := database.GetAccount(db, id)
 	if err != nil {
-		request.NotFound(ctx)
+		response.NotFound(ctx)
 		return
 	}
 	if !auth.HasAccessPerm(user, account.UserID, true, true, false) {
-		request.Forbidden(ctx)
+		response.Forbidden(ctx)
 		return
 	}
 	db.Where("account_id = ?", account.ID).Delete(&models.StockSnapshot{})
 	db.Where("account_id = ?", account.ID).Delete(&models.UserStock{})
 	db.Delete(&models.Account{}, account.ID)
-	request.NoContent(ctx)
+	response.NoContent(ctx)
 }
 
 func RegisterAccountRoutes(router *gin.RouterGroup) {

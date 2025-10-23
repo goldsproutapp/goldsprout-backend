@@ -1,8 +1,9 @@
-package models
+package reports
 
 import (
 	"time"
 
+	"github.com/goldsproutapp/goldsprout-backend/models"
 	"github.com/shopspring/decimal"
 )
 
@@ -38,4 +39,10 @@ type Report struct {
 
 	TotalIncome   decimal.Decimal `json:"total_income"`
 	SnapshotCount int             `json:"snapshot_count"`
+}
+
+type AggregatedSnapshotsMap struct {
+	Snapshots       map[string][]models.StockSnapshot      // StockSnapshot.key() -> []StockSnapshot
+	AccountPrevious map[uint]map[uint]models.StockSnapshot // AccountID -> StockID -> []StockSnapshot (penultimate snapshot list for account)
+	AccountLast     map[uint]time.Time                     // AccountID -> Date (latest snapshot date for account)
 }

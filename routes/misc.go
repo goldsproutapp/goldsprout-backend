@@ -6,7 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/goldsproutapp/goldsprout-backend/database"
 	"github.com/goldsproutapp/goldsprout-backend/middleware"
-	"github.com/goldsproutapp/goldsprout-backend/request"
+	"github.com/goldsproutapp/goldsprout-backend/request/response"
 )
 
 func GetAllRegions(ctx *gin.Context) {
@@ -24,7 +24,7 @@ func GetAllSectors(ctx *gin.Context) {
 func GetAllClasses(ctx *gin.Context) {
 	db := middleware.GetDB(ctx)
 	classes := database.GetClasses(db)
-	request.OK(ctx, gin.H{"classes": classes})
+	response.OK(ctx, gin.H{"classes": classes})
 }
 
 func RegisterMiscRoutes(router *gin.RouterGroup) {

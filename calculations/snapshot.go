@@ -20,7 +20,7 @@ func CalculateNormalisedPerformance(
 	prevSnapshot *models.StockSnapshot,
 	date time.Time,
 ) decimal.Decimal {
-	if prevSnapshot == nil {
+	if prevSnapshot == nil || prevSnapshot.Price.Equal(decimal.NewFromInt(0)) {
 		return decimal.NewFromInt(0)
 	}
 	perfChange := price.Sub(prevSnapshot.Price).Div(prevSnapshot.Price)

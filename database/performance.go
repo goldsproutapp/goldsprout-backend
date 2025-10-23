@@ -9,7 +9,7 @@ import (
 	"gorm.io/gorm"
 )
 
-func FetchPerformanceData(db *gorm.DB, user models.User, filter models.StockFilter, permitLimited bool) []models.StockSnapshot {
+func GetFilteredSnapshots(db *gorm.DB, user models.User, filter StockFilter, permitLimited bool) []models.StockSnapshot {
 	uids := auth.GetAllowedUsers(user, true, false, permitLimited)
 	if user.IsAdmin {
 		uids = util.UserIDs(GetAllUsers(db))

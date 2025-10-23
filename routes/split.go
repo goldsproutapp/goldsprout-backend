@@ -4,13 +4,13 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/goldsproutapp/goldsprout-backend/calculations"
-	"github.com/goldsproutapp/goldsprout-backend/calculations/performance"
 	"github.com/goldsproutapp/goldsprout-backend/calculations/split"
 	"github.com/goldsproutapp/goldsprout-backend/database"
+	"github.com/goldsproutapp/goldsprout-backend/lib/processing"
 	"github.com/goldsproutapp/goldsprout-backend/middleware"
 	"github.com/goldsproutapp/goldsprout-backend/models"
 	"github.com/goldsproutapp/goldsprout-backend/request"
+	"github.com/goldsproutapp/goldsprout-backend/request/response"
 	"github.com/goldsproutapp/goldsprout-backend/util"
 	"github.com/shopspring/decimal"
 )
@@ -21,16 +21,16 @@ func Split(ctx *gin.Context) {
 
 	var query models.SplitRequestQuery
 	if ctx.BindQuery(&query) != nil {
-		request.BadRequest(ctx)
+		response.BadRequest(ctx)
 		return
 	}
 	if !split.IsSplitQueryValid(query) {
-		request.BadRequest(ctx)
+		response.BadRequest(ctx)
 		return
 	}
-	filter := performance.BuildStockFilter(query.StockFilterQuery)
+	filter := request.BuildStockFilter(query.StockFilterQuery)
 
-	snapshots := database.FetchPerformanceData(db, user, filter, true)
+	snapshots := database.GetFilteredSnapshots(db, user, filter, true)
 	out := map[string]map[string]decimal.Decimal{}
 
 	if query.Compare == "all" {
@@ -55,7 +55,7 @@ func Split(ctx *gin.Context) {
 			out[key] = util.UpdateMap(categories, res)
 		}
 	}
-	request.OK(ctx, out)
+	response.OK(ctx, out)
 }
 
 func SplitHistory(ctx *gin.Context) {
@@ -64,22 +64,22 @@ func SplitHistory(ctx *gin.Context) {
 
 	var query models.SplitHistoryRequestQuery
 	if ctx.BindQuery(&query) != nil {
-		request.BadRequest(ctx)
+		response.BadRequest(ctx)
 		return
 	}
 	if !split.IsSplitQueryValid(query.SplitRequestQuery) {
-		request.BadRequest(ctx)
+		response.BadRequest(ctx)
 		return
 	}
-	filter := performance.BuildStockFilter(query.StockFilterQuery)
+	filter := request.BuildStockFilter(query.StockFilterQuery)
 
-	allSnapshots := database.FetchPerformanceData(db, user, filter, true)
+	allSnapshots := database.GetFilteredSnapshots(db, user, filter, true)
 	groups := split.CategoriseSnapshots(allSnapshots, query.Across)
 	if query.Compare != "all" && !util.ContainsKey(groups, query.Item) {
-		request.NotFound(ctx)
+		response.NotFound(ctx)
 		return
 	}
-	snapshotMapMerged, _ := calculations.CreateMergedSnapshotMap(allSnapshots)
+	snapshotMapMerged, _ := processing.CreateMergedSnapshotMap(allSnapshots)
 	out := map[string]map[time.Time]decimal.Decimal{}
 	acrossKey := util.Assign(query.Item).If(query.Compare == "all").Else(query.Across)
 	for t, s := range snapshotMapMerged {
@@ -96,7 +96,7 @@ func SplitHistory(ctx *gin.Context) {
 			out[k][t] = v
 		}
 	}
-	request.OK(ctx, out)
+	response.OK(ctx, out)
 }
 
 func RegisterSplitRoutes(router *gin.RouterGroup) {

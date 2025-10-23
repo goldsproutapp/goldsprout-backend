@@ -44,10 +44,11 @@ type StockFilterQuery struct {
 
 type PerformanceRequestQuery struct {
 	StockFilterQuery
-	Compare string `binding:"required" json:"compare,omitempty" form:"compare"`
-	Of      string `binding:"required" json:"of,omitempty" form:"of"`
-	For     string `binding:"required" json:"for,omitempty" form:"for"`
-	Over    string `binding:"required" json:"over,omitempty" form:"over"`
+	Compare    string `binding:"required" json:"compare,omitempty" form:"compare"`
+	Of         string `binding:"required" json:"of,omitempty" form:"of"`
+	For        string `binding:"required" json:"for,omitempty" form:"for"`
+	Over       string `binding:"required" json:"over,omitempty" form:"over"`
+	LatestOnly bool   `json:"latest_only" form:"latest_only"`
 }
 
 type SplitRequestQuery struct {

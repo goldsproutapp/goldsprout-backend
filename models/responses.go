@@ -17,6 +17,7 @@ type OverviewResponseUserEntry struct {
 type OverviewResponse struct {
 	OverviewResponseUserEntry
 	Users map[string]OverviewResponseUserEntry `json:"users,omitempty"`
+	AUM   decimal.Decimal                      `json:"aum,omitempty"`
 }
 
 type AccountReponse struct {

@@ -7,7 +7,7 @@ import (
 	"github.com/goldsproutapp/goldsprout-backend/database"
 	"github.com/goldsproutapp/goldsprout-backend/middleware"
 	"github.com/goldsproutapp/goldsprout-backend/models"
-	"github.com/goldsproutapp/goldsprout-backend/request"
+	"github.com/goldsproutapp/goldsprout-backend/request/response"
 )
 
 func GetAllProviders(ctx *gin.Context) {
@@ -22,11 +22,11 @@ func UpdateProvider(ctx *gin.Context) {
 	var body models.ProviderUpdateRequest
 	err := ctx.BindJSON(&body)
 	if err != nil {
-		request.BadRequest(ctx)
+		response.BadRequest(ctx)
 		return
 	}
 	if !user.IsAdmin { // TODO: this seems reasonable for now, but perhaps more granular permissions would be better
-		request.Forbidden(ctx)
+		response.Forbidden(ctx)
 		return
 	}
 	db.Save(&(body.Provider))

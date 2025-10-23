@@ -1,10 +1,9 @@
 package split
 
 import (
-	"slices"
 	"time"
 
-	"github.com/goldsproutapp/goldsprout-backend/calculations/performance"
+	"github.com/goldsproutapp/goldsprout-backend/lib/extraction"
 	"github.com/goldsproutapp/goldsprout-backend/constants"
 	"github.com/goldsproutapp/goldsprout-backend/models"
 	"github.com/goldsproutapp/goldsprout-backend/util"
@@ -13,18 +12,13 @@ import (
 
 type splitMap map[string][]models.StockSnapshot
 
-func IsSplitQueryValid(q models.SplitRequestQuery) bool {
-	return slices.Contains(performance.Targets, q.Compare) &&
-		slices.Contains(performance.Targets, q.Across)
-}
-
 func CategoriseSnapshots(snapshots []models.StockSnapshot, categoryKey string,
 ) splitMap {
 	grouped := splitMap{}
 	for _, snapshot := range snapshots {
-		categories := performance.GetKeysFromSnapshot(snapshot, categoryKey)
+		categories := extraction.GetKeysFromSnapshot(snapshot, categoryKey)
 		for _, category := range categories {
-			s := performance.GetContributionForCategory(snapshot, categoryKey, category)
+			s := extraction.GetContributionForCategory(snapshot, categoryKey, category)
 			if util.ContainsKey(grouped, category) {
 				grouped[category] = append(grouped[category], s)
 			} else {

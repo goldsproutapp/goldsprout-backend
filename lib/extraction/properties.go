@@ -1,12 +1,6 @@
-package performance
+package extraction
 
 import (
-	"slices"
-	"sort"
-	"strconv"
-	"time"
-
-	"github.com/goldsproutapp/goldsprout-backend/constants"
 	"github.com/goldsproutapp/goldsprout-backend/models"
 	"github.com/goldsproutapp/goldsprout-backend/util"
 	"github.com/shopspring/decimal"
@@ -39,12 +33,28 @@ var singlePropGetters = map[string]func(models.StockSnapshot) string{
 		return ""
 	},
 }
+
+func SnapshotPropertyExtractionFunction(property string) func(models.StockSnapshot) string {
+	return singlePropGetters[property]
+}
+
+func ExtractPropertyFromSnapshot(property string, snapshot models.StockSnapshot) string {
+	return SnapshotPropertyExtractionFunction(property)(snapshot)
+}
+
 var multiPropGetters = map[string]func(models.StockSnapshot) []string{
 	"class": func(snapshot models.StockSnapshot) []string {
 		return util.MapKeys(snapshot.Stock.ClassCompositionMap)
 	},
 }
-var propGetters = map[string]func(models.StockSnapshot) []string{}
+
+func SnapshotCompositePropertyExtractionFunction(property string) func(models.StockSnapshot) []string {
+	return multiPropGetters[property]
+}
+
+func ExtractCompositePropertyFromSnapshot(property string, snapshot models.StockSnapshot) []string {
+	return SnapshotCompositePropertyExtractionFunction(property)(snapshot)
+}
 
 func SplitSnapshotValueByPercentage(snapshot models.StockSnapshot, percentage decimal.Decimal) models.StockSnapshot {
 	pct := percentage.Div(decimal.NewFromInt(100))
@@ -76,50 +86,12 @@ var compositionSplitters = map[string]func(models.StockSnapshot, string) models.
 	},
 }
 
-var SingleTargets = util.MapKeys(singlePropGetters)
-var MultiTargets = util.MapKeys(multiPropGetters)
-var Targets = append(SingleTargets, MultiTargets...)
-
-var timeGetters = map[string]func(models.StockSnapshot) string{
-	"years": func(snapshot models.StockSnapshot) string {
-		return strconv.FormatInt(int64(snapshot.Date.Year()), 10)
-	},
-	"months": func(snapshot models.StockSnapshot) string {
-		return snapshot.Date.Month().String()
-	},
-}
-var Times = util.MapKeys(timeGetters)
-
-var timeListGetters = map[string]func([]string) []string{
-	"years": func(years []string) []string {
-		sort.Slice(years, func(a, b int) bool {
-			errList := []error{}
-			return util.ParseUint(years[a], &errList) < util.ParseUint(years[b], &errList)
-		})
-		return years
-	},
-	"months": func(moonths []string) []string {
-		return constants.MONTHS
-	},
-}
-
-var timeFocus = map[string]func(string) []string{
-	"years": func(year string) []string {
-		yearNum := util.ParseIntOrDefault(year, -1)
-		start := time.Date(yearNum, time.January, 1, 0, 0, 0, 0, time.UTC)
-		end := time.Date(yearNum, time.December, 31, 23, 0, 0, 0, time.UTC)
-		return []string{"months", strconv.FormatInt(start.Unix(), 10), strconv.FormatInt(end.Unix(), 10)}
-	},
-	"months": func(month string) []string {
-		return []string{}
-	},
-}
-
 func GetKeysFromSnapshot(snapshot models.StockSnapshot, key string) []string {
-	if util.ContainsKey(singlePropGetters, key) {
-		return util.Only(singlePropGetters[key](snapshot))
+	extractionFunction := SnapshotPropertyExtractionFunction(key)
+	if extractionFunction != nil {
+		return util.Only(extractionFunction(snapshot))
 	} else {
-		return multiPropGetters[key](snapshot)
+		return ExtractCompositePropertyFromSnapshot(key, snapshot)
 	}
 }
 
@@ -130,24 +102,14 @@ func GetContributionForCategory(snapshot models.StockSnapshot, key string, categ
 	return compositionSplitters[key](snapshot, category)
 }
 
-func groupHasSnapshot(key string, value string, snapshot models.StockSnapshot) bool {
-	return slices.Contains(GetKeysFromSnapshot(snapshot, key), value)
+func SingleTargets() []string {
+	return util.MapKeys(singlePropGetters)
 }
 
-func getTimeCategoryFromSnapshot(snapshot models.StockSnapshot, timeKey string) string {
-	return timeGetters[timeKey](snapshot)
+func MultiTargets() []string {
+	return util.MapKeys(multiPropGetters)
 }
 
-func BuildStockFilter(query models.StockFilterQuery) models.StockFilter {
-	ignoreBefore := time.Unix(int64(util.ParseIntOrDefault(query.FilterIgnoreBefore, 0)), 0)
-	ignoreAfter := time.Unix(int64(util.ParseIntOrDefault(query.FilterIgnoreAfter, 0)), 0)
-	filter := models.StockFilter{
-		Regions:   util.Split(query.FilterRegions, ","),
-		Providers: util.UintArray(query.FilterProviders),
-		Users:     util.UintArray(query.FilterUsers),
-		Accounts:  util.Split(query.FilterAccounts, ","),
-		LowerDate: ignoreBefore,
-		UpperDate: ignoreAfter,
-	}
-	return filter
+func AllTargets() []string {
+	return append(SingleTargets(), MultiTargets()...)
 }

@@ -1,11 +1,11 @@
 package reports
 
 import (
-	"fmt"
-	"slices"
 	"sort"
 	"time"
 
+	"github.com/goldsproutapp/goldsprout-backend/lib/extraction"
+	"github.com/goldsproutapp/goldsprout-backend/lib/extraction/times"
 	"github.com/goldsproutapp/goldsprout-backend/constants"
 	"github.com/goldsproutapp/goldsprout-backend/database"
 	"github.com/goldsproutapp/goldsprout-backend/models"
@@ -14,40 +14,11 @@ import (
 	"gorm.io/gorm"
 )
 
-type AggregatedSnapshotsMap struct {
-	Snapshots       map[string][]models.StockSnapshot      // StockSnapshot.key() -> []StockSnapshot
-	AccountPrevious map[uint]map[uint]models.StockSnapshot // AccountID -> StockID -> []StockSnapshot (penultimate snapshot list for account)
-	AccountLast     map[uint]time.Time                     // AccountID -> Date (latest snapshot date for account)
-}
-
-var Periods = []string{"monthly", "annual"}
-
-var TimeGetters = map[string]func(models.StockSnapshot) string{
-	"monthly": func(s models.StockSnapshot) string {
-		return s.Date.Format("Jan 2006")
-	},
-	"annual": func(s models.StockSnapshot) string {
-		return fmt.Sprintf("%v", s.Date.Year())
-	},
-}
-var PrevPeriod = map[string]func(time.Time) time.Time{
-	"monthly": func(t time.Time) time.Time {
-		return t.AddDate(0, 0, -t.Day())
-	},
-	"annual": func(t time.Time) time.Time {
-		return time.Date(t.Year(), time.January, 1, 0, 0, 0, 0, time.UTC)
-	},
-}
-
-func IsReportQueryValid(query models.ReportRequestQuery) bool {
-	return slices.Contains(Periods, query.Period)
-}
-
 func SplitSnapshots(timePeriodKey string, snapshots []models.StockSnapshot) (map[string][]models.StockSnapshot, []string) {
 	splitSnapshotMap := map[string][]models.StockSnapshot{}
 	timePeriodMap := map[string]time.Time{}
 	for _, snapshot := range snapshots {
-		period := TimeGetters[timePeriodKey](snapshot)
+		period := extraction.ExtractTimeFromSnapshot(times.ReportExtractionSet(), timePeriodKey, snapshot)
 		if !util.ContainsKey(splitSnapshotMap, period) {
 			splitSnapshotMap[period] = []models.StockSnapshot{}
 		}
@@ -79,18 +50,8 @@ func AggregateSnapshots(db *gorm.DB, start time.Time, snapshots []models.StockSn
 		}
 		if !util.ContainsKey(accountPrev, snapshot.AccountID) {
 			var dateSnapshot models.StockSnapshot
-			if database.Exists(db.Model(&models.StockSnapshot{}).
-				Select("date").
-				Where("account_id = ?", snapshot.AccountID).
-				Where("date < ?", start).
-				Order("date DESC").
-				Limit(1).
-				First(&dateSnapshot)) {
-				var prevSnapshots []models.StockSnapshot
-				db.Model(&models.StockSnapshot{}).
-					Where("account_id = ?", snapshot.AccountID).
-					Where("date = ?", dateSnapshot.Date).
-					Find(&prevSnapshots)
+			if database.AccountSnapshotBeforeDate(db, start, snapshot.AccountID, &dateSnapshot) {
+				prevSnapshots := database.GetAccountSnapshotsForDate(db, snapshot.AccountID, dateSnapshot.Date)
 				prevSnapshotMap := map[uint]models.StockSnapshot{}
 				for _, s := range prevSnapshots {
 					prevSnapshotMap[s.StockID] = s
@@ -109,7 +70,7 @@ func AggregateSnapshots(db *gorm.DB, start time.Time, snapshots []models.StockSn
 	}
 }
 
-func updateReportForHolding(aggregated AggregatedSnapshotsMap, key string, report *models.Report) {
+func updateReportForHolding(aggregated AggregatedSnapshotsMap, key string, report *Report) {
 	snapshots := aggregated.Snapshots[key]
 	if len(snapshots) == 0 {
 		return
@@ -139,7 +100,7 @@ func updateReportForHolding(aggregated AggregatedSnapshotsMap, key string, repor
 	} else {
 		report.EndValue = report.EndValue.Add(snapshots[len(snapshots)-1].Value)
 	}
-	transactions := []models.ReportTransaction{}
+	transactions := []ReportTransaction{}
 	fee := decimal.NewFromInt(0)
 	for i, s := range snapshotsWithPrev[1:] {
 		prev := snapshotsWithPrev[i]
@@ -153,7 +114,7 @@ func updateReportForHolding(aggregated AggregatedSnapshotsMap, key string, repor
 		if transactionValue.IsZero() || transactionValue.Abs().LessThan(decimal.NewFromInt(1)) {
 			continue
 		}
-		transactions = append(transactions, models.ReportTransaction{
+		transactions = append(transactions, ReportTransaction{
 			Date:        s.Date,
 			StockID:     stock,
 			AccountID:   account,
@@ -181,9 +142,9 @@ func updateReportForHolding(aggregated AggregatedSnapshotsMap, key string, repor
 	report.Transactions = append(report.Transactions, transactions...)
 }
 
-func GenerateReport(aggregated AggregatedSnapshotsMap) models.Report {
+func generateReport(aggregated AggregatedSnapshotsMap) Report {
 	zero := decimal.NewFromInt(0)
-	report := models.Report{
+	report := Report{
 		StartValue:  zero,
 		EndValue:    zero,
 		GrossChange: zero,
@@ -198,7 +159,7 @@ func GenerateReport(aggregated AggregatedSnapshotsMap) models.Report {
 		ExpectedFees: zero,
 		TotalIncome:  zero,
 
-		Transactions:  []models.ReportTransaction{},
+		Transactions:  []ReportTransaction{},
 		SnapshotCount: 0,
 	}
 	for _, s := range aggregated.AccountPrevious {
@@ -237,4 +198,29 @@ func GenerateReport(aggregated AggregatedSnapshotsMap) models.Report {
 	report.GrossChange = report.EndValue.Sub(report.StartValue)
 
 	return report
+}
+
+func CalculateReport(db *gorm.DB, filter database.StockFilter, query models.ReportRequestQuery, snapshots []models.StockSnapshot) ([]string, map[string]Report) {
+	split, times := SplitSnapshots(query.Period, snapshots)
+	reportMap := map[string]Report{}
+	lowestDate := filter.LowerDate
+	if len(times) > 0 && len(split[times[0]]) > 0 {
+		lowestDate = split[times[0]][0].Date
+	}
+	for p, s := range split {
+		if len(s) == 0 {
+			reportMap[p] = Report{
+				Transactions: []ReportTransaction{}, // return empty array instead of `null`
+			}
+			continue
+		}
+		t := lowestDate
+		if p != "Total" {
+			t = GetPreviousTimePeriod(query.Period, s[0].Date)
+		}
+		aggregated := AggregateSnapshots(db, t, s)
+		report := generateReport(aggregated)
+		reportMap[p] = report
+	}
+	return times, reportMap
 }

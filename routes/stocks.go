@@ -7,7 +7,7 @@ import (
 	"github.com/goldsproutapp/goldsprout-backend/database"
 	"github.com/goldsproutapp/goldsprout-backend/middleware"
 	"github.com/goldsproutapp/goldsprout-backend/models"
-	"github.com/goldsproutapp/goldsprout-backend/request"
+	"github.com/goldsproutapp/goldsprout-backend/request/response"
 	"github.com/shopspring/decimal"
 )
 
@@ -55,7 +55,7 @@ func GetHoldings(ctx *gin.Context) {
 		updateHoldingMap(&byStock, snapshot.StockID, snapshot.UserID, info)
 		updateHoldingMap(&byAccount, snapshot.AccountID, snapshot.StockID, info)
 	}
-	request.OK(ctx, gin.H{
+	response.OK(ctx, gin.H{
 		"by_user": byUser, "by_stock": byStock, "by_account": byAccount,
 	})
 
@@ -67,11 +67,11 @@ func UpdateStock(ctx *gin.Context) {
 	var body models.StockUpdateRequest
 	err := ctx.BindJSON(&body)
 	if err != nil {
-		request.BadRequest(ctx)
+		response.BadRequest(ctx)
 		return
 	}
 	if !database.CanModifyStock(db, user, body.Stock.ID) {
-		request.Forbidden(ctx)
+		response.Forbidden(ctx)
 		return
 	}
 	db.Save(&(body.Stock))
@@ -84,11 +84,11 @@ func MergeStocks(ctx *gin.Context) {
 	var body models.StockMergeRequest
 	err := ctx.BindJSON(&body)
 	if err != nil {
-		request.BadRequest(ctx)
+		response.BadRequest(ctx)
 		return
 	}
 	if !database.CanModifyStock(db, user, body.Stock) || !database.CanModifyStock(db, user, body.MergeInto) {
-		request.Forbidden(ctx)
+		response.Forbidden(ctx)
 		return
 	}
 	db.Model(&models.StockSnapshot{}).Where("stock_id = ?", body.Stock).Update("stock_id", body.MergeInto)
@@ -111,7 +111,7 @@ func MergeStocks(ctx *gin.Context) {
 	}
 	db.Model(&models.UserStock{}).Where("stock_id = ?", body.Stock).Update("stock_id", body.MergeInto)
 	db.Delete(&models.Stock{}, body.Stock)
-	request.NoContent(ctx)
+	response.NoContent(ctx)
 }
 
 func RegisterStockRoutes(router *gin.RouterGroup) {

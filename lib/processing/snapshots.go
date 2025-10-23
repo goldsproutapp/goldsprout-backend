@@ -1,4 +1,4 @@
-package calculations
+package processing
 
 import (
 	"time"
@@ -73,3 +73,4 @@ func CreateMergedSnapshotMap(snapshots []models.StockSnapshot) (map[time.Time][]
 	}
 	return snapshotMapMerged, yearStartMap
 }
+

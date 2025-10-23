@@ -9,7 +9,7 @@ import (
 	"github.com/goldsproutapp/goldsprout-backend/database"
 	"github.com/goldsproutapp/goldsprout-backend/middleware"
 	"github.com/goldsproutapp/goldsprout-backend/models"
-	"github.com/goldsproutapp/goldsprout-backend/request"
+	"github.com/goldsproutapp/goldsprout-backend/request/response"
 	"gorm.io/gorm/clause"
 )
 
@@ -57,7 +57,7 @@ func FormatCSV(snapshot models.StockSnapshot) string {
 func ExportToCSV(ctx *gin.Context) {
 	user := middleware.GetUser(ctx)
 	db := middleware.GetDB(ctx)
-	snapshots := database.GetAllSnapshots(user, db, false, clause.Associations, "Stock.Provider")
+	snapshots := database.GetAllVisibleSnapshots(user, db, false, clause.Associations, "Stock.Provider")
 	outputArr := make([]string, len(snapshots)+1)
 	outputArr[0] = strings.Join(headings, ",")
 	for i, snapshot := range snapshots {
@@ -65,7 +65,7 @@ func ExportToCSV(ctx *gin.Context) {
 		outputArr[i+1] = str
 	}
 	output := strings.Join(outputArr, "\n")
-	request.FileOK(ctx, "export.csv", output)
+	response.FileOK(ctx, "export.csv", output)
 }
 
 func RegisterExportRoutes(router *gin.RouterGroup) {
